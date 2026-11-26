@@ -21,7 +21,7 @@ STATUS_END="<!-- WHITEP_TASK_STATUS_RECORD_END -->"
 ROLE_IDS=("senior-engineer","execution-engineer","qa-testing-engineer","safety-engineer","project-structure-engineer","design-engineer","ux-interaction-engineer","feasibility-engineer","idea-alignment-engineer","project-mapping-engineer")
 BASE_DOCUMENT_ROLES={"safety-engineer","project-structure-engineer","design-engineer","ux-interaction-engineer","project-mapping-engineer"}
 FIXED_PARAMETER_IDS={
- "senior-engineer":[f"SE-{i:02d}" for i in range(1,8)],
+ "senior-engineer":[f"SE-{i:02d}" for i in range(1,17)],
  "execution-engineer":[f"EX-{i:02d}" for i in range(1,8)],
  "qa-testing-engineer":[f"QA-{i:02d}" for i in range(1,9)],
  "safety-engineer":[f"SAF-{i:02d}" for i in range(1,8)],
@@ -32,6 +32,14 @@ FIXED_PARAMETER_IDS={
  "idea-alignment-engineer":[f"IA-{i:02d}" for i in range(1,7)],
  "project-mapping-engineer":[f"PM-{i:02d}" for i in range(1,8)],
 }
+LEGACY_FIXED_PARAMETER_IDS={**FIXED_PARAMETER_IDS,"senior-engineer":[f"SE-{i:02d}" for i in range(1,8)]}
+SUPPORTED_SCHEMA_VERSIONS={"1.0","1.1"}
+SCHEDULING_MODES={"sequential_default","controlled_parallel"}
+CHANGE_REGISTER_STATES={"identified","impact_mapped","reconciliation_in_progress","accepted","rejected"}
+IMPACT_CLASSIFICATIONS={"direct","transitive","contract","behavioral","documentation","none"}
+RECONCILIATION_DECISIONS={"unchanged","re_review_required","superseded","split","merged","not_affected","reopened","blocked"}
+RECONCILIATION_REVIEW_STATES={"pending","reviewed"}
+
 CODE_SUFFIXES={".py",".cs",".kt",".java",".js",".ts",".tsx",".jsx",".cpp",".c",".h",".hpp",".go",".rs",".swift",".sql"}
 PLACEHOLDER_PATTERNS=(
  (re.compile(r"\bTODO\b"),"TODO marker"),
@@ -118,9 +126,151 @@ def validate_parameter_registry(root:Path)->list[Finding]:
    all_ids[parameter_id]=role
  return findings
 
-def validate_record(task,by_id,record,markdown,root,out):
+def derive_execution_waves(graph:dict[str,Any])->tuple[dict[str,dict[str,Any]],list[list[str]]]:
+ """Derive stable topological positions and conservative DAG readiness waves."""
+ tasks=graph.get("tasks",[]) if isinstance(graph,dict) else []
+ order=[node["id"] for node in tasks if isinstance(node,dict) and isinstance(node.get("id"),str)]
+ dependencies={node["id"]:set(node.get("depends_on",[])) for node in tasks if isinstance(node,dict) and isinstance(node.get("id"),str)}
+ remaining=set(order); placed=set(); waves=[]; by_task={}; position=0
+ while remaining:
+  ready=[tid for tid in order if tid in remaining and dependencies.get(tid,set()).issubset(placed)]
+  if not ready: raise ValueError("Cannot derive execution waves from a cyclic or unresolved graph.")
+  wave_index=len(waves)+1; wave_id=f"WAVE-{wave_index:03d}"; wave=[]
+  for tid in ready:
+   position+=1
+   by_task[tid]={"topological_order":position,"wave_id":wave_id,"wave_index":wave_index}
+   wave.append(tid)
+  waves.append(wave); placed.update(ready); remaining.difference_update(ready)
+ return by_task,waves
+
+def validate_schema_11_record(task,by_id,record,plan_by_id,root,out,ctx):
+ source=record.get("source_baseline")
+ fields=("source_path","source_version","main_commit_sha","source_blob_sha","graph_blob_sha","catalog_blob_sha","captured_at")
+ if not isinstance(source,dict):
+  out.append(Finding("ERROR","MISSING_SOURCE_BASELINE",f"{ctx}: schema 1.1 requires source_baseline.")); source={}
+ for field in fields:
+  if not isinstance(source.get(field),str) or not source[field].strip():
+   out.append(Finding("ERROR","INCOMPLETE_SOURCE_BASELINE",f"{ctx}: source_baseline.{field} is required."))
+ for field in ("main_commit_sha","source_blob_sha","graph_blob_sha","catalog_blob_sha"):
+  value=source.get(field)
+  if isinstance(value,str) and not re.fullmatch(r"[0-9a-f]{40}",value):
+   out.append(Finding("ERROR","INVALID_BASELINE_SHA",f"{ctx}: source_baseline.{field} must be a full 40-character Git SHA."))
+ plan=record.get("execution_plan")
+ if not isinstance(plan,dict):
+  out.append(Finding("ERROR","MISSING_EXECUTION_PLAN",f"{ctx}: schema 1.1 requires execution_plan.")); plan={}
+ expected=plan_by_id.get(task["id"])
+ for field in ("topological_order","wave_id","wave_index"):
+  if expected is None or plan.get(field)!=(expected or {}).get(field):
+   out.append(Finding("ERROR","EXECUTION_WAVE_MISMATCH",f"{ctx}: execution_plan.{field} differs from the graph-derived schedule."))
+ if plan.get("scheduling_mode") not in SCHEDULING_MODES:
+  out.append(Finding("ERROR","INVALID_SCHEDULING_MODE",f"{ctx}: unsupported scheduling_mode."))
+ if not isinstance(plan.get("parallelism_authorized"),bool):
+  out.append(Finding("ERROR","INVALID_PARALLELISM_AUTHORIZATION",f"{ctx}: parallelism_authorized must be boolean."))
+ if not isinstance(plan.get("parallelism_reason"),str) or not plan["parallelism_reason"].strip():
+  out.append(Finding("ERROR","MISSING_PARALLELISM_REASON",f"{ctx}: execution_plan needs a reason."))
+ parallel_evidence=plan.get("parallelism_evidence",[])
+ if not isinstance(parallel_evidence,list):
+  out.append(Finding("ERROR","INVALID_PARALLELISM_EVIDENCE",f"{ctx}: parallelism_evidence must be an array.")); parallel_evidence=[]
+ if plan.get("parallelism_authorized") is True:
+  if plan.get("scheduling_mode")!="controlled_parallel" or not parallel_evidence:
+   out.append(Finding("ERROR","UNSUPPORTED_PARALLEL_EXECUTION",f"{ctx}: parallel mode needs explicit controlled_parallel mode and collision/resource evidence."))
+ elif plan.get("scheduling_mode")!="sequential_default":
+  out.append(Finding("ERROR","INCONSISTENT_SCHEDULING_MODE",f"{ctx}: non-authorized execution must use sequential_default."))
+ for item in parallel_evidence: evidence_item(item,root,out,f"{ctx} parallelism")
+
+ changes=record.get("requirement_change_register")
+ if not isinstance(changes,list):
+  out.append(Finding("ERROR","INVALID_REQUIREMENT_CHANGE_REGISTER",f"{ctx}: requirement_change_register must be an array.")); changes=[]
+ change_by_id={}
+ for change in changes:
+  if not isinstance(change,dict):
+   out.append(Finding("ERROR","INVALID_REQUIREMENT_CHANGE",f"{ctx}: change entries must be objects.")); continue
+  cid=change.get("change_id")
+  if not isinstance(cid,str) or not re.fullmatch(r"CHG-\d{8}-\d{3}",cid) or cid in change_by_id:
+   out.append(Finding("ERROR","INVALID_CHANGE_ID",f"{ctx}: invalid/duplicate change ID {cid!r}.")); continue
+  change_by_id[cid]=change
+  for field in ("recorded_at","source_version_before","source_version_after","change_summary","reason","recorded_by"):
+   if not isinstance(change.get(field),str) or not change[field].strip():
+    out.append(Finding("ERROR","INCOMPLETE_REQUIREMENT_CHANGE",f"{ctx}: {cid} missing {field}."))
+  reqs=change.get("changed_requirement_ids")
+  if not isinstance(reqs,list) or not reqs or any(not isinstance(x,str) or not x.strip() for x in reqs):
+   out.append(Finding("ERROR","INVALID_CHANGED_REQUIREMENT_IDS",f"{ctx}: {cid} needs exact changed requirement/section IDs."))
+  affected=change.get("affected_task_ids")
+  if not isinstance(affected,list) or len(affected)!=len(set(affected)):
+   out.append(Finding("ERROR","INVALID_CHANGE_AFFECTED_TASKS",f"{ctx}: {cid} affected_task_ids must be a unique array."))
+  else:
+   for affected_id in affected:
+    if affected_id not in by_id: out.append(Finding("ERROR","UNKNOWN_AFFECTED_TASK",f"{ctx}: {cid} references unknown task {affected_id!r}."))
+  if change.get("status") not in CHANGE_REGISTER_STATES:
+   out.append(Finding("ERROR","INVALID_CHANGE_REGISTER_STATE",f"{ctx}: {cid} has invalid status."))
+  change_evidence=change.get("evidence",[])
+  if not isinstance(change_evidence,list):
+   out.append(Finding("ERROR","INVALID_CHANGE_EVIDENCE",f"{ctx}: {cid} evidence must be an array.")); change_evidence=[]
+  if change.get("status") in {"impact_mapped","reconciliation_in_progress","accepted","rejected"} and not change_evidence:
+   out.append(Finding("ERROR","CHANGE_WITHOUT_EVIDENCE",f"{ctx}: {cid} requires evidence once impact is mapped."))
+  for item in change_evidence: evidence_item(item,root,out,f"{ctx} change {cid}")
+
+ reconciliations=record.get("affected_task_reconciliation")
+ if not isinstance(reconciliations,list):
+  out.append(Finding("ERROR","INVALID_AFFECTED_TASK_RECONCILIATION",f"{ctx}: affected_task_reconciliation must be an array.")); reconciliations=[]
+ seen=set(); mapped=defaultdict(set)
+ for entry in reconciliations:
+  if not isinstance(entry,dict):
+   out.append(Finding("ERROR","INVALID_RECONCILIATION_ENTRY",f"{ctx}: reconciliation entries must be objects.")); continue
+  cid=entry.get("change_id"); affected_id=entry.get("task_id"); key=(cid,affected_id)
+  if cid not in change_by_id: out.append(Finding("ERROR","UNKNOWN_RECONCILIATION_CHANGE",f"{ctx}: unknown change ID {cid!r}."))
+  if affected_id not in by_id: out.append(Finding("ERROR","UNKNOWN_RECONCILIATION_TASK",f"{ctx}: unknown affected task {affected_id!r}."))
+  if key in seen: out.append(Finding("ERROR","DUPLICATE_RECONCILIATION_ENTRY",f"{ctx}: duplicate reconciliation {key!r}."))
+  seen.add(key); mapped[cid].add(affected_id)
+  if entry.get("baseline_status") not in GRAPH_STATUSES or entry.get("current_status") not in GRAPH_STATUSES:
+   out.append(Finding("ERROR","INVALID_RECONCILIATION_STATUS",f"{ctx}: {affected_id} has invalid baseline/current status."))
+  if entry.get("impact_classification") not in IMPACT_CLASSIFICATIONS:
+   out.append(Finding("ERROR","INVALID_IMPACT_CLASSIFICATION",f"{ctx}: {affected_id} has invalid impact classification."))
+  if entry.get("decision") not in RECONCILIATION_DECISIONS:
+   out.append(Finding("ERROR","INVALID_RECONCILIATION_DECISION",f"{ctx}: {affected_id} has invalid decision."))
+  review=entry.get("review_status")
+  if review not in RECONCILIATION_REVIEW_STATES:
+   out.append(Finding("ERROR","INVALID_RECONCILIATION_REVIEW_STATE",f"{ctx}: {affected_id} has invalid review_status."))
+  if entry.get("revalidation_status") not in REVALIDATION_STATES:
+   out.append(Finding("ERROR","INVALID_RECONCILIATION_REVALIDATION_STATE",f"{ctx}: {affected_id} has invalid revalidation_status."))
+  changed=entry.get("status_changed"); transition=entry.get("status_transition")
+  if not isinstance(changed,bool):
+   out.append(Finding("ERROR","INVALID_RECONCILIATION_STATUS_CHANGE",f"{ctx}: {affected_id} status_changed must be boolean."))
+  elif not changed:
+   if entry.get("current_status")!=entry.get("baseline_status") or transition is not None:
+    out.append(Finding("ERROR","UNJUSTIFIED_RECONCILIATION_STATUS_CHANGE",f"{ctx}: {affected_id} changed status without a recorded transition."))
+  else:
+   if not isinstance(transition,dict) or any(not isinstance(transition.get(k),str) or not transition[k].strip() for k in ("from","to","reason","reviewed_by","changed_at")) or not isinstance(transition.get("evidence"),list) or not transition.get("evidence"):
+    out.append(Finding("ERROR","INCOMPLETE_RECONCILIATION_TRANSITION",f"{ctx}: {affected_id} transition needs from/to/reason/evidence/reviewer/time."))
+   else:
+    if transition.get("from")!=entry.get("baseline_status") or transition.get("to")!=entry.get("current_status"):
+     out.append(Finding("ERROR","RECONCILIATION_TRANSITION_MISMATCH",f"{ctx}: {affected_id} transition does not match baseline/current status."))
+    if review!="reviewed": out.append(Finding("ERROR","UNREVIEWED_STATUS_TRANSITION",f"{ctx}: {affected_id} cannot change status before impact review."))
+    for item in transition.get("evidence",[]): evidence_item(item,root,out,f"{ctx} transition {affected_id}")
+  if not isinstance(entry.get("task_status_path_exists"),bool):
+   out.append(Finding("ERROR","INVALID_RECONCILIATION_STATUS_PATH_FLAG",f"{ctx}: {affected_id} task_status_path_exists must be boolean."))
+  update_ids=entry.get("update_task_ids",[])
+  if not isinstance(update_ids,list) or any(not isinstance(x,str) or x not in by_id for x in update_ids):
+   out.append(Finding("ERROR","INVALID_RECONCILIATION_UPDATE_IDS",f"{ctx}: {affected_id} has invalid update_task_ids."))
+  entry_evidence=entry.get("evidence",[])
+  if not isinstance(entry_evidence,list):
+   out.append(Finding("ERROR","INVALID_RECONCILIATION_EVIDENCE",f"{ctx}: {affected_id} evidence must be an array.")); entry_evidence=[]
+  if review=="reviewed" and not entry_evidence:
+   out.append(Finding("ERROR","REVIEWED_RECONCILIATION_WITHOUT_EVIDENCE",f"{ctx}: {affected_id} reviewed without evidence."))
+  for item in entry_evidence: evidence_item(item,root,out,f"{ctx} reconciliation {affected_id}")
+  for field in ("reviewed_by","reviewed_at"):
+   if not isinstance(entry.get(field),str) or not entry[field].strip():
+    out.append(Finding("ERROR","INCOMPLETE_RECONCILIATION_REVIEW",f"{ctx}: {affected_id} missing {field}."))
+ for cid,change in change_by_id.items():
+  affected=set(change.get("affected_task_ids",[])) if isinstance(change.get("affected_task_ids"),list) else set()
+  if affected!=mapped.get(cid,set()):
+   out.append(Finding("ERROR","RECONCILIATION_SET_MISMATCH",f"{ctx}: {cid} missing={sorted(affected-mapped.get(cid,set()))}; extra={sorted(mapped.get(cid,set())-affected)}."))
+
+def validate_record(task,by_id,record,markdown,root,out,plan_by_id):
  tid=task["id"]; ctx=f"{tid} task-status"
- if record.get("schema_version")!="1.0": out.append(Finding("ERROR","STATUS_SCHEMA_VERSION",f"{ctx}: schema_version must be '1.0'."))
+ schema_version=record.get("schema_version")
+ if schema_version not in SUPPORTED_SCHEMA_VERSIONS: out.append(Finding("ERROR","STATUS_SCHEMA_VERSION",f"{ctx}: schema_version must be one of {sorted(SUPPORTED_SCHEMA_VERSIONS)}."))
+ if schema_version=="1.1": validate_schema_11_record(task,by_id,record,plan_by_id,root,out,ctx)
  if record.get("task_id")!=tid: out.append(Finding("ERROR","STATUS_TASK_ID_MISMATCH",f"{ctx}: record task_id differs from graph."))
  if record.get("graph_status")!=task.get("status"): out.append(Finding("ERROR","STATUS_GRAPH_STATE_MISMATCH",f"{ctx}: record graph_status differs from graph."))
 
@@ -256,9 +406,11 @@ def validate_record(task,by_id,record,markdown,root,out):
   if state=="not_applicable" and (activation!=0 or mode!="not_run"): out.append(Finding("ERROR","NA_AGENT_LIFECYCLE",f"{ctx}: N/A role {role} requires zero activations and not_run."))
   if state=="not_applicable" and not str(agent.get("not_applicable_reason","")).strip(): out.append(Finding("ERROR","NA_AGENT_WITHOUT_REASON",f"{ctx}: {role} needs a reason."))
   if state=="completed":
-   expected=fixed_ids_from_prompt(root,role); actual=agent.get("fixed_parameter_ids",[])
+   expected=(LEGACY_FIXED_PARAMETER_IDS if schema_version=="1.0" else {**FIXED_PARAMETER_IDS,role:fixed_ids_from_prompt(root,role)})[role]; actual=agent.get("fixed_parameter_ids",[])
    if actual!=expected: out.append(Finding("ERROR","FIXED_PARAMETER_REGISTER_MISMATCH",f"{ctx}: {role} fixed IDs must be {expected}."))
    missing=[pid for pid in expected if not re.search(rf"\b{re.escape(pid)}\b",markdown)]
+   if schema_version=="1.1":
+    missing.extend(check for pid,check in fixed_parameter_definitions_from_prompt(root,role) if check not in markdown)
    if missing: out.append(Finding("ERROR","FIXED_PARAMETERS_NOT_COPIED",f"{ctx}: {role} missing fixed checks {missing}."))
    task_ids=agent.get("task_specific_parameter_ids",[])
    if not isinstance(task_ids,list) or len(task_ids)!=len(set(task_ids)): out.append(Finding("ERROR","INVALID_TASK_PARAMETER_IDS",f"{ctx}: {role} task-specific IDs must be unique."))
@@ -336,6 +488,8 @@ def validate_graph(graph:Any,repo_root:Path|None=None)->list[Finding]:
    indegree[target]-=1
    if indegree[target]==0: q.append(target)
  if visited!=len(by_id): out.append(Finding("ERROR","DEPENDENCY_CYCLE","Dependency graph contains a cycle."))
+ try: plan_by_id,waves=derive_execution_waves(graph)
+ except ValueError: plan_by_id,waves={},[]
  if repo_root is not None:
   out.extend(validate_parameter_registry(repo_root.resolve()))
   for tid,node in by_id.items():
@@ -344,7 +498,7 @@ def validate_graph(graph:Any,repo_root:Path|None=None)->list[Finding]:
     if not status_path.is_file(): out.append(Finding("ERROR","MISSING_TASK_STATUS",f"{tid}: task-status.md is required.")); continue
     try: markdown=status_path.read_text(encoding="utf-8"); record=extract_status_record(markdown)
     except (OSError,UnicodeError,ValueError,json.JSONDecodeError) as exc: out.append(Finding("ERROR","TASK_STATUS_READ",f"{tid}: {exc}.")); continue
-    validate_record(node,by_id,record,markdown,repo_root.resolve(),out)
+    validate_record(node,by_id,record,markdown,repo_root.resolve(),out,plan_by_id)
  return out
 
 def main(argv=None):
@@ -352,10 +506,17 @@ def main(argv=None):
  parser.add_argument("graph",type=Path,help="Path to dependency-graph.json")
  parser.add_argument("--repo-root",type=Path,help="Validate task-status records and actual outputs against this checkout")
  parser.add_argument("--strict",action="store_true",help="Treat warnings as failures")
+ parser.add_argument("--show-waves",action="store_true",help="Print graph-derived execution-wave counts")
  args=parser.parse_args(argv)
  try: graph=json.loads(args.graph.read_text(encoding="utf-8"))
  except (OSError,UnicodeError,json.JSONDecodeError) as exc: print(f"ERROR GRAPH_READ: {exc}",file=sys.stderr); return 2
  findings=validate_graph(graph,args.repo_root.resolve() if args.repo_root else None)
+ if args.show_waves:
+  try:
+   _,waves=derive_execution_waves(graph)
+   print(f"Execution plan: {len(waves)} conservative wave(s).")
+   for index,wave in enumerate(waves,1): print(f"WAVE-{index:03d}: {len(wave)} task(s)")
+  except ValueError as exc: print(f"ERROR EXECUTION_WAVES: {exc}",file=sys.stderr)
  count=len(graph.get("tasks",[])) if isinstance(graph,dict) and isinstance(graph.get("tasks"),list) else 0
  edges=sum(len(n.get("depends_on",[])) for n in graph.get("tasks",[]) if isinstance(n,dict) and isinstance(n.get("depends_on"),list)) if isinstance(graph,dict) else 0
  print(f"Graph guard: {count} tasks, {edges} direct dependency edges.")

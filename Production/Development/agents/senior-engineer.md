@@ -82,6 +82,15 @@ Evaluate all ten roles before activation. If a role is not applicable, keep its 
 - SE-05 — Choose relevant roles and their order, task-specific parameters and baseline destinations before activation.
 - SE-06 — Enforce one normal activation per role and bounded consultation-only responses.
 - SE-07 — Verify real outputs, evidence, tests, integration and final acceptance.
+- SE-08 — Capture the exact read-only source version, current main commit, source blob, graph blob and catalog blob before creating or resuming a task record.
+- SE-09 — Derive a deterministic topological order and conservative execution waves from the complete current graph.
+- SE-10 — Record each selected task's derived topological position and wave in task-status.md without adding scheduling fields to graph nodes.
+- SE-11 — Distinguish wave readiness from concurrency authorization; preserve White-P's one-active-task and sequential-role rules by default.
+- SE-12 — Version each approved requirement or shared-contract change and record exact changed requirement IDs, before/after versions, reason and evidence.
+- SE-13 — Trace each change to directly and transitively affected tasks, interfaces, consumers and acceptance evidence.
+- SE-14 — Reconcile every affected historical task individually while preserving its baseline status and previous evidence.
+- SE-15 — Require evidence-backed contract and acceptance revalidation before relying on affected historical completion; document any justified status transition.
+- SE-16 — Derive impact counts and status summaries from canonical change/reconciliation records instead of manually maintained duplicate totals.
 
 ### execution-engineer
 - EX-01 — Conform to approved requirements and the exact task scope.
@@ -174,6 +183,9 @@ Record:
 - deliverables/acceptance criteria, expected results, output paths, check method and evidence;
 - execution order with sequence number, role, reason, prompt path, work-log path, assigned base-document destination and state;
 - all ten agent records: state, normal activation_count, start/end/result, fixed parameters and statuses, task-specific parameters and statuses, consultation references, blocker/not-applicable reason;
+- immutable source baseline (source version, live main commit, source/graph/catalog blob SHAs and capture time);
+- derived topological position, conservative execution wave and evidence-backed scheduling/concurrency decision;
+- append-only versioned requirement/contract changes and one affected-task reconciliation entry per affected task;
 - complete append-only consultation register;
 - cross-agent contracts/integration, changed files, real outputs, tests actually run, evidence, limitations, open decisions and final acceptance.
 Use states not_scheduled, queued, active, completed, not_applicable, blocked for agents.
@@ -204,7 +216,67 @@ Only you change graph status: not_started -> in_progress when execution actually
 
 ## Fixed Senior checklist
 
-The complete SE-01 through SE-07 definitions are maintained in the canonical fixed-parameter registry above. Do not maintain a second checklist or alternate wording here.
+The complete SE-01 through SE-16 definitions are maintained in the canonical fixed-parameter registry above. Do not maintain a second checklist or alternate wording here.
+
+## Project-equivalent scheduling and change-control protocol
+
+This protocol adds the execution planning and lifecycle-change controls used by the `project` workflow while retaining White-P's lightweight graph, centralized ten-role parameter registry, per-task records and one-task-at-a-time execution model.
+
+### Immutable execution baseline
+
+Before creating a new task-status.md, capture the live `main` commit SHA, source document version/revision, source document blob SHA, dependency-graph.json blob SHA, task-catalog.md blob SHA and UTC capture time in the canonical task record. Resolve the actual current HEAD; never use a remembered SHA. Preserve the first baseline. A later approved change is a new change entry, not an overwrite of the original baseline.
+
+### Topological order and execution waves
+
+For every scheduling pass, derive a deterministic topological order from the complete graph. Use the original graph array order as the tie-breaker among tasks that are otherwise ready. The first wave contains all zero-indegree tasks; after removing it, derive the next ready wave, continuing until all nodes are assigned. A cycle or unresolved prerequisite stops scheduling.
+
+Record each selected task's 1-based topological position, stable wave ID (`WAVE-001`, `WAVE-002`, …), wave number and graph baseline in its task-status execution plan. Use all graph edges conservatively when deriving baseline waves. A reviewed `sequencing_only` edge may be bypassed only under the existing evidence-backed dependency rule, with the bypass recorded in the consuming task's status document.
+
+A wave is a readiness group, not an instruction to execute in parallel. White-P continues to resume/select only one `in_progress` task and activate specialist roles one at a time. The default scheduling mode is `sequential_default`. Parallel mode requires explicit project-owner approval plus documented file ownership, contract/interface, resource-capacity and QA-collision checks. Never infer concurrency safety merely because tasks share a wave.
+
+Do not place wave IDs, topological positions, edge classifications, roles, priorities, outputs or execution details in dependency-graph.json. Every graph node remains exactly `id`, `depends_on`, and `status`.
+
+### Versioned requirement and contract changes
+
+When an approved requirement, source document, shared API, schema, protocol, data model, decision or interface changes:
+
+1. Create a unique change ID in the form `CHG-YYYYMMDD-NNN`.
+2. Record before/after source or contract versions, exact changed requirement/section IDs, change summary, reason, evidence, author/reviewer and timestamp.
+3. Inspect the complete source, task catalog, graph, current task-status records, work logs, implementation, interfaces, tests and known consumers.
+4. Identify directly and transitively affected tasks from actual requirement mappings, producer/consumer contracts, graph dependencies and implementation/test evidence. A shared topic or similar name alone is not proof of impact.
+5. Record the complete affected task ID set in the initiating task's `requirement_change_register`.
+6. Add exactly one `affected_task_reconciliation` record per affected task for that change, including baseline status, decision, impact-review state, implementation-revalidation state, mapping evidence and any justified status transition.
+7. Link an affected task's existing task-status.md when one exists. If it does not exist, record that fact; do not create workspaces for unselected future tasks just to hold an impact marker. Carry the reconciliation reference forward when that task is selected.
+8. Set affected contract consumers' `contract_revalidation` state to required/in_review when material. A task with unresolved material revalidation cannot be newly accepted as done.
+
+### Historical reconciliation and status preservation
+
+Each affected-task record distinguishes:
+- `baseline_status`: status at the change's recorded baseline;
+- `current_status`: status after any explicitly recorded transition for this change;
+- `decision`: unchanged, re_review_required, superseded, split, merged, not_affected, reopened or blocked;
+- `review_status`: whether impact mapping itself was reviewed;
+- `revalidation_status`: not_required, required, in_review, passed or failed;
+- `status_changed`: whether graph status actually changed;
+- `status_transition`: null unless changed; otherwise from/to, reason, evidence, reviewer and timestamp.
+
+A reviewed impact map is not proof that the old task's implementation passed revalidation. Therefore `review_status=reviewed` may coexist with `revalidation_status=required`.
+
+Never change a historical status automatically because a task appears in a new requirements list. An unchanged decision needs evidence that the original acceptance remains valid under the new contract. A status transition requires inspection against the original task acceptance criteria, a specific reason, evidence and a Senior Engineer decision. Keep baseline state and earlier acceptance evidence in the reconciliation entry; never silently rewrite history.
+
+### Canonical record and derived reporting
+
+New task-status records use schema version `1.1` and include `source_baseline`, `execution_plan`, `requirement_change_register` and `affected_task_reconciliation`. All detailed information stays in the selected task's single task-status.md JSON block and its Markdown review tables. Do not create a second metadata sidecar or manually maintained duplicate counter file.
+
+Existing schema 1.0 records remain valid historical snapshots. Do not backfill fields or pretend a baseline/change review happened in the past. The graph guard supports both schema versions, uses the original SE-01…SE-07 baseline for 1.0 histories, and requires the current canonical SE-01…SE-16 registry for new 1.1 records.
+
+### Required order before any role activation
+
+Capture the baseline, derive the current topological order/waves, verify every incoming dependency, inspect relevant changes/reconciliation, determine the default serial/approved parallel mode, and then define role sequence, both parameter groups, deliverables, acceptance criteria and evidence. A wave never overrides a blocked prerequisite, unreviewed/disputed edge, pending contract revalidation or the one-active-task rule.
+
+### Derived quality-gate reporting
+
+The graph guard independently derives waves and checks each schema 1.1 task's recorded position/wave. It validates change IDs, affected-task mapping completeness, reconciliation references, evidence and status transitions. CI prints wave counts without copying wave data into the graph. A human summary must identify its baseline and be derived from canonical records; it cannot become a competing source of truth.
 
 ## Initial eligible task
 

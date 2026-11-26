@@ -77,7 +77,7 @@ Normal activation_count is 0 before starting and exactly 1 after the role begins
 - Work log: Tasks/<TASK_ID>/senior-engineer/work-log.md
 - Base-document destination: <ONE_OF_FIVE_EXISTING_FOLDERS>
 
-**Group 1 — fixed Senior Engineer parameters:** Copy SE-01 through SE-07 verbatim from the canonical fixed-parameter registry in agents/senior-engineer.md. Give each an expected result, required evidence and one review status.
+**Group 1 — fixed Senior Engineer parameters:** Copy SE-01 through SE-16 verbatim from the canonical fixed-parameter registry in agents/senior-engineer.md, one row per ID. Give each an expected result, required evidence and one review status.
 
 | Parameter ID | Fixed check (copied from prompt) | Expected result | Evidence | Status |
 |---|---|---|---|---|
@@ -332,9 +332,27 @@ The ten role entries below are mandatory. Update each entry's state, activation 
 <!-- WHITEP_TASK_STATUS_RECORD_START -->
 ```json
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "task_id": "<TASK_ID>",
   "graph_status": "<not_started|in_progress|done|blocked|deferred_final>",
+  "source_baseline": {
+    "source_path": "Production/task-decomposition/main-document.md",
+    "source_version": "<EXPLICIT_VERSION_OR_not_versioned>",
+    "main_commit_sha": "<40-CHAR-CURRENT-MAIN-SHA>",
+    "source_blob_sha": "<40-CHAR-SOURCE-BLOB-SHA>",
+    "graph_blob_sha": "<40-CHAR-GRAPH-BLOB-SHA>",
+    "catalog_blob_sha": "<40-CHAR-CATALOG-BLOB-SHA>",
+    "captured_at": "<UTC-ISO-8601-TIMESTAMP>"
+  },
+  "execution_plan": {
+    "topological_order": 1,
+    "wave_id": "WAVE-001",
+    "wave_index": 1,
+    "scheduling_mode": "sequential_default",
+    "parallelism_authorized": false,
+    "parallelism_reason": "White-P retains one active task by default.",
+    "parallelism_evidence": []
+  },
   "prerequisite_reviews": [],
   "acceptance_criteria": [],
   "actual_output_paths": [],
@@ -359,6 +377,8 @@ The ten role entries below are mandatory. Update each entry's state, activation 
     {"role_id":"project-mapping-engineer","state":"not_scheduled","normal_activation_count":0,"execution_mode":"not_run","work_log_path":"Production/Development/Tasks/<TASK_ID>/project-mapping-engineer/work-log.md","base_document_destination":"Production/Development/base-documents/project-mapping-engineer","fixed_parameter_ids":[],"task_specific_parameter_ids":[],"not_applicable_reason":null}
   ],
   "consultations": [],
+  "requirement_change_register": [],
+  "affected_task_reconciliation": [],
   "edge_change_log": [],
   "contract_revalidation": {"state":"not_required","affected_task_ids":[],"reason":null,"evidence":[]},
   "blocked_reason": null,
@@ -374,3 +394,35 @@ The ten role entries below are mandatory. Update each entry's state, activation 
 - A completed role must have exactly one normal activation and an existing work log; a not_applicable role must have zero activations and an explicit reason. Do not describe sequential same-assistant passes as independent agents.
 - For code outputs, evidence must include test source under tests/ or test/. Known TODO, NotImplemented, mock, placeholder and simulated-response markers are rejected from code files claimed as actual outputs.
 - Keep task-status history append-only. Correct earlier information by adding a dated clarification or a new attempt; never silently erase it.
+
+
+## 16. Immutable planning baseline
+
+At task creation, capture the live `main` commit SHA, source document version/revision, source blob SHA, graph blob SHA, catalog blob SHA and UTC timestamp. Never use a remembered revision. Do not change the initial baseline when a later requirement or contract changes; append a new change record instead. Use `not_versioned` only when the source has no declared version.
+
+## 17. Derived topological order and execution wave
+
+The Senior Engineer derives the stable topological position and wave ID from the complete graph. The graph guard derives the same result independently and rejects mismatches. Use graph array order as the tie-breaker. All graph edges are included conservatively in the baseline wave calculation.
+
+| Topological position | Wave ID | Wave number | Scheduling mode | Parallel execution authorized? | Collision/resource assessment and evidence |
+|---:|---|---:|---|---|---|
+| <DERIVED_POSITION> | <DERIVED_WAVE_ID> | <DERIVED_WAVE_NUMBER> | <sequential_default/controlled_parallel> | <false/true> | <REASON_AND_EVIDENCE> |
+
+A wave indicates readiness, not concurrency permission. One active task and sequential specialist roles remain the default. Parallel task execution requires explicit project-owner approval and documented file, interface, resource and QA collision controls. Never add wave metadata to dependency-graph.json.
+
+## 18. Versioned requirement changes and affected-task reconciliation
+
+Append every approved source/contract change to `requirement_change_register`. Each entry has a unique change ID, before/after source versions, exact changed requirement/section IDs, summary, reason, evidence, affected task IDs, author, timestamp and state.
+
+For every affected task, append exactly one `affected_task_reconciliation` entry for that change. Preserve its baseline status and prior acceptance evidence; record impact classification, decision, impact-review state, implementation-revalidation state and any justified status transition. Impact mapping marked reviewed does not mean implementation revalidation passed.
+
+A task status must never change merely because the task was listed as affected. A transition requires explicit from/to status, reason, evidence, Senior Engineer reviewer and timestamp. Do not create future task workspaces only to hold impact markers. Record whether an affected task-status.md exists and carry the reference into that task when it is selected.
+
+All impact totals and status counts are derived from the arrays in this task-status record. Do not manually maintain a second summary counter or duplicate global change map.
+
+The machine-readable field contracts are:
+
+- `requirement_change_register[]`: `change_id`, `recorded_at`, `source_version_before`, `source_version_after`, `changed_requirement_ids[]`, `change_summary`, `reason`, `evidence[]`, `affected_task_ids[]`, `recorded_by`, `status`.
+- `affected_task_reconciliation[]`: `change_id`, `task_id`, `baseline_status`, `current_status`, `impact_classification`, `decision`, `review_status`, `revalidation_status`, `status_changed`, `status_transition`, `task_status_path_exists`, `update_task_ids[]`, `evidence[]`, `reviewed_by`, `reviewed_at`.
+
+Schema 1.0 records remain immutable historical snapshots. New task-status documents use schema 1.1; never backfill historical facts that were not captured at the time.

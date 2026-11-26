@@ -26,6 +26,6 @@ jobs:
       - name: Compile validation tools and tests
         run: python -m compileall -q Production/Development/tools Production/Development/tests
       - name: Validate dependency graph structure
-        run: python Production/Development/tools/graph_guard.py Production/Development/dependency-graph.json
+        run: python Production/Development/tools/graph_guard.py Production/Development/dependency-graph.json --show-waves
       - name: Validate task-status records and actual output evidence
-        run: python Production/Development/tools/graph_guard.py Production/Development/dependency-graph.json --repo-root .
+        run: python Production/Development/tools/graph_guard.py Production/Development/dependency-graph.json --repo-root . --show-waves

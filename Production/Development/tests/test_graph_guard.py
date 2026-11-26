@@ -2,7 +2,7 @@ import json,sys,tempfile,unittest
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
-from tools.graph_guard import FIXED_PARAMETER_IDS,STATUS_END,STATUS_START,extract_status_record,fixed_ids_from_prompt,fixed_parameter_definitions_from_prompt,valid_task_parameter_id,validate_graph,validate_parameter_registry
+from tools.graph_guard import FIXED_PARAMETER_IDS,STATUS_END,STATUS_START,derive_execution_waves,extract_status_record,fixed_ids_from_prompt,fixed_parameter_definitions_from_prompt,valid_task_parameter_id,validate_graph,validate_parameter_registry
 
 def node(tid,deps=None,status="not_started"): return {"id":tid,"depends_on":deps or [],"status":status}
 def graph_fixture(): return {"tasks":[node("WP-INIT-001"),node("WP-INIT-002",["WP-INIT-001"])]}
@@ -147,5 +147,89 @@ class TaskStatusTests(unittest.TestCase):
    root=Path(td); (root/"output.md").write_text("output",encoding="utf-8"); write_status(root,record)
    errors={x.code for x in validate_graph(graph,root)}
   self.assertIn("UNSAFE_OUTPUT_PATH",errors)
+
+
+class ExecutionWaveTests(unittest.TestCase):
+ def test_independent_tasks_share_first_wave(self):
+  graph={"tasks":[node("WP-A"),node("WP-B"),node("WP-C",["WP-A"])]}
+  positions,waves=derive_execution_waves(graph)
+  self.assertEqual([["WP-A","WP-B"],["WP-C"]],waves)
+  self.assertEqual({"topological_order":1,"wave_id":"WAVE-001","wave_index":1},positions["WP-A"])
+  self.assertEqual({"topological_order":2,"wave_id":"WAVE-001","wave_index":1},positions["WP-B"])
+  self.assertEqual({"topological_order":3,"wave_id":"WAVE-002","wave_index":2},positions["WP-C"])
+ def test_wave_tie_breaking_uses_graph_order(self):
+  _,waves=derive_execution_waves({"tasks":[node("WP-Z"),node("WP-A"),node("WP-B",["WP-Z"])]})
+  self.assertEqual([["WP-Z","WP-A"],["WP-B"]],waves)
+ def test_cycle_has_no_execution_wave_plan(self):
+  graph={"tasks":[node("WP-A",["WP-B"]),node("WP-B",["WP-A"])]}
+  with self.assertRaises(ValueError): derive_execution_waves(graph)
+
+class Schema11TaskStatusTests(unittest.TestCase):
+ def make_record(self):
+  record=done_record(); record["schema_version"]="1.1"
+  record["source_baseline"]={
+   "source_path":"Production/task-decomposition/main-document.md","source_version":"not_versioned",
+   "main_commit_sha":"1"*40,"source_blob_sha":"2"*40,"graph_blob_sha":"3"*40,
+   "catalog_blob_sha":"4"*40,"captured_at":"2026-11-27T00:00:00Z"}
+  positions,_=derive_execution_waves({"tasks":[node("WP-INIT-001",status="done")]})
+  record["execution_plan"]={**positions["WP-INIT-001"],"scheduling_mode":"sequential_default",
+   "parallelism_authorized":False,"parallelism_reason":"Serial task execution remains the default.",
+   "parallelism_evidence":[]}
+  record["requirement_change_register"]=[]
+  record["affected_task_reconciliation"]=[]
+  return record
+ def test_schema11_requires_source_baseline_and_execution_plan(self):
+  graph={"tasks":[node("WP-INIT-001",status="done")]}
+  record=self.make_record(); record.pop("source_baseline"); record.pop("execution_plan")
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td); (root/"output.md").write_text("output",encoding="utf-8"); write_status(root,record)
+   errors={x.code for x in validate_graph(graph,root)}
+  self.assertIn("MISSING_SOURCE_BASELINE",errors); self.assertIn("MISSING_EXECUTION_PLAN",errors)
+ def test_schema11_rejects_incorrect_wave(self):
+  graph={"tasks":[node("WP-INIT-001",status="done")]}
+  record=self.make_record(); record["execution_plan"]["wave_id"]="WAVE-009"
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td); (root/"output.md").write_text("output",encoding="utf-8"); write_status(root,record)
+   errors={x.code for x in validate_graph(graph,root)}
+  self.assertIn("EXECUTION_WAVE_MISMATCH",errors)
+ def test_impact_mapping_requires_complete_task_reconciliation(self):
+  graph={"tasks":[node("WP-INIT-001",status="done"),node("WP-INIT-002",["WP-INIT-001"],status="done")]}
+  record=self.make_record()
+  record["requirement_change_register"]=[{
+   "change_id":"CHG-20261127-001","recorded_at":"2026-11-27T00:00:00Z",
+   "source_version_before":"1.0","source_version_after":"1.1",
+   "changed_requirement_ids":["REQ-001"],"change_summary":"A shared contract changed.",
+   "reason":"Test fixture.","evidence":["change.md"],"affected_task_ids":["WP-INIT-002"],
+   "recorded_by":"senior-engineer","status":"impact_mapped"}]
+  record["affected_task_reconciliation"]=[{
+   "change_id":"CHG-20261127-001","task_id":"WP-INIT-002","baseline_status":"done","current_status":"done",
+   "impact_classification":"contract","decision":"re_review_required","review_status":"reviewed",
+   "revalidation_status":"required","status_changed":False,"status_transition":None,
+   "task_status_path_exists":False,"update_task_ids":[],"evidence":["change.md"],
+   "reviewed_by":"senior-engineer","reviewed_at":"2026-11-27T00:00:00Z"}]
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td); (root/"output.md").write_text("output",encoding="utf-8"); (root/"change.md").write_text("change",encoding="utf-8"); write_status(root,record)
+   errors={x.code for x in validate_graph(graph,root)}
+  self.assertNotIn("RECONCILIATION_SET_MISMATCH",errors)
+  self.assertNotIn("REVIEWED_RECONCILIATION_WITHOUT_EVIDENCE",errors)
+ def test_changed_status_requires_explicit_evidence(self):
+  graph={"tasks":[node("WP-INIT-001",status="done"),node("WP-INIT-002",["WP-INIT-001"],status="blocked")]}
+  record=self.make_record()
+  record["requirement_change_register"]=[{
+   "change_id":"CHG-20261127-001","recorded_at":"2026-11-27T00:00:00Z",
+   "source_version_before":"1.0","source_version_after":"1.1",
+   "changed_requirement_ids":["REQ-001"],"change_summary":"A shared contract changed.",
+   "reason":"Test fixture.","evidence":["change.md"],"affected_task_ids":["WP-INIT-002"],
+   "recorded_by":"senior-engineer","status":"impact_mapped"}]
+  record["affected_task_reconciliation"]=[{
+   "change_id":"CHG-20261127-001","task_id":"WP-INIT-002","baseline_status":"done","current_status":"blocked",
+   "impact_classification":"contract","decision":"blocked","review_status":"pending",
+   "revalidation_status":"required","status_changed":True,"status_transition":None,
+   "task_status_path_exists":False,"update_task_ids":[],"evidence":[],
+   "reviewed_by":"senior-engineer","reviewed_at":"2026-11-27T00:00:00Z"}]
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td); (root/"output.md").write_text("output",encoding="utf-8"); (root/"change.md").write_text("change",encoding="utf-8"); write_status(root,record)
+   errors={x.code for x in validate_graph(graph,root)}
+  self.assertIn("INCOMPLETE_RECONCILIATION_TRANSITION",errors)
 
 if __name__=="__main__": unittest.main(verbosity=2)
