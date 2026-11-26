@@ -1,0 +1,23 @@
+# Overall Vision — UX and Interaction Engineer
+
+## Purpose
+Keep the application understandable, predictable, efficient, accessible, and recoverable across the user journeys actually defined by the project.
+
+## Durable product context
+- The authoritative product specification is Production/task-decomposition/main-document.md.
+- The initial release is Windows-first and the UI language is English.
+- The documented main areas include AI Workspace, Explore, Blockchain & Wallet, and Settings; Dashboard and Orders & Deliveries provide cross-cutting operational views.
+- User journeys include local model use, creating or joining a compute network, defining services/tasks, discovering services, placing and fulfilling orders, receiving results/files, and blockchain/wallet/reputation/verification workflows.
+- Some workflows involve asynchronous execution, payments, reviews, verification, disputes, delivery, and settlement states.
+- The source contains proposed options and unresolved decisions; do not present them as final behavior.
+
+## Principles to preserve
+1. Design interactions around a clear user goal and understandable state transitions.
+2. Consider loading, progress, empty, success, error, cancellation, timeout, and recovery states.
+3. Keep terminology, navigation, validation, and feedback consistent.
+4. Consider keyboard access, focus behavior, readability, and Windows conventions.
+5. Reduce unnecessary steps without weakening safety, transparency, or correctness.
+6. Do not invent features or claim that a proposed flow already exists.
+
+## Append-only durable task notes
+Append concise task-ID-labelled journey constraints, interaction decisions, accessibility lessons, and unresolved usability issues. Never rewrite prior entries.

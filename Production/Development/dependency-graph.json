@@ -1,0 +1,5 @@
+{
+  "tasks": [
+    { "id": "WP-INIT-001", "depends_on": [], "status": "not_started" }
+  ]
+}
