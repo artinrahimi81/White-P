@@ -25,3 +25,8 @@ Append concise task-ID-labelled journey constraints, interaction decisions, acce
 ## WP-INIT-001 — UX and Interaction Engineer durable note
 
 The decomposition preserves journeys from local inference and network participation through service discovery, ordering, delivery, customer feedback, two-stage verification and final settlement. No Feedback is not automatically positive or negative; Not Satisfied alone does not prove misconduct. Windows desktop, English UI, recovery, accessibility and explicit state-transition criteria remain part of downstream acceptance.
+
+
+## WP-INIT-002 — UX and Interaction Engineer durable note
+
+The task breakdown now separates the application shell, navigation, dashboard, settings, local inference, network participation, Defined Tasks, marketplace, ordering, delivery, feedback, wallet and verification interactions into individually verifiable work packages. Each user-facing child should specify entry conditions, controls, validation, progress/empty/error/cancel states, authorization, recovery and accessibility acceptance. No Feedback and Dispute remain distinct; pending chain payment is not finality.

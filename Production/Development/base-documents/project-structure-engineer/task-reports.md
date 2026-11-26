@@ -24,3 +24,24 @@ No task reports have been recorded yet.
 - Evidence: exact path review and changed-path comparison.
 - Acceptance: repository structure follows the task workflow.
 - Execution mode: same-assistant role-scoped pass; not independent agent execution.
+
+
+## WP-INIT-002 — Feasibility Engineer report
+
+- Scope: assess technical/platform constraints, resources, third-party dependencies, licensing, external approvals and graph prerequisite semantics for the expanded work breakdown.
+- Result: 27 domain baselines and 137 child tasks create smaller, verifiable outcomes without inventing implementation estimates.
+- Dependency review: each child depends on its own domain baseline and only on additional upstream outputs/contracts that it actually consumes; the suggested development phase order remains advisory.
+- Unknowns retained: runtime/model choices, benchmark thresholds, FX/payment source, consensus, Tokenomics, stake/penalty rules, committee randomness, custody and legal constraints.
+- Evidence: complete source, prior catalog/graph, expanded catalog and graph reviewed; 166 nodes and 236 direct edges passed static integrity validation.
+- Acceptance: feasibility, uncertainty and genuine prerequisite rules are explicit; no unsupported duration, cost or throughput estimates were added.
+- Execution mode: same-assistant role-scoped pass; not independent agent execution.
+
+## WP-INIT-002 — Project Structure Engineer report
+
+- Paths created: Production/Development/Tasks/WP-INIT-002/task-status.md and ten fixed role work-log paths.
+- Paths updated: Production/Development/task-catalog.md, dependency-graph.json and append-only baseline reports/vision notes in project-mapping-engineer, project-structure-engineer, ux-interaction-engineer and safety-engineer.
+- Identifier decision: all 27 existing -001 domain IDs are preserved; new child tasks continue the matching WP-DOMAIN-NNN namespace with unique sequence numbers.
+- Preservation: WP-INIT-001 status/history, source specification, role prompts and collaboration rules are not rewritten; no future child-task workspace, source copy, README, move or rename is introduced.
+- Evidence: recursive online tree and exact changed-path review; all new paths remain within Production/Development.
+- Acceptance: parent/child naming and selected-task workspace follow the existing Senior Engineer conventions.
+- Execution mode: same-assistant role-scoped pass; not independent agent execution.

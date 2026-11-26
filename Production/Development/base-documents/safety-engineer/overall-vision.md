@@ -25,3 +25,8 @@ Append only concise, verified, task-ID-labelled principles, risks, decisions, an
 ## WP-INIT-001 — Safety Engineer durable note
 
 Security decomposition covers model provenance, compute/chain separation, node and role identities, prompts/customer data, intermediate distributed data, wallet keys, payments/escrow, private delivery, settlement records and committee signatures. Transport encryption alone is not represented as confidentiality of intermediate model data. Private files/customer data remain off public chain. Proposed controls and residual risks are separate from implemented/effective controls.
+
+
+## WP-INIT-002 — Safety Engineer durable note
+
+The expanded work breakdown preserves a security task at both system and feature level. It separates identity/key lifecycle, authorization, supply-chain provenance, sandboxing/prompt injection, node communication, intermediate-data privacy, private file access, committee independence, settlement signatures and incident response. Transport encryption is not described as preventing participating compute nodes from seeing plaintext intermediate data. Proposed controls remain distinct from implemented/effective controls.

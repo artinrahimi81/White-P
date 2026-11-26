@@ -29,3 +29,12 @@ The specification is decomposed into 27 bounded product-development tasks plus W
 ## WP-INIT-001 — Project Mapping Engineer durable note
 
 Traceability covers introductory/final material and every numbered source section. The product remains a Windows-first local/distributed AI application with a distinct but connected blockchain network. Pipeline Parallelism is not conflated with Tensor Parallelism. The inspected repository is documentation/process-only; target components are not described as implemented. Wallet custody and other unresolved decisions remain explicit.
+
+
+## WP-INIT-002 — Senior Engineer durable note
+
+The original completed WP-INIT-001 is preserved. WP-INIT-002 deepens its output into 27 domain specification gates and 137 independently schedulable child work packages. The graph remains the sole authority for IDs, direct dependencies and statuses; unresolved product decisions remain open. Role reviews were same-assistant sequential passes, not independent agent execution.
+
+## WP-INIT-002 — Project Mapping Engineer durable note
+
+The expanded catalog maps the 32-section source to 166 task identities. Each original domain -001 task is the specification/contract baseline for its children. Child tasks have one primary owner, source references, objective, scope, exclusion, output, acceptance and direct prerequisites. Current repository state remains distinct from intended product state; no application implementation is claimed.

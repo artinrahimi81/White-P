@@ -6,16 +6,23 @@
       "status": "done"
     },
     {
-      "id": "WP-ARCH-001",
+      "id": "WP-INIT-002",
       "depends_on": [
         "WP-INIT-001"
+      ],
+      "status": "done"
+    },
+    {
+      "id": "WP-ARCH-001",
+      "depends_on": [
+        "WP-INIT-002"
       ],
       "status": "not_started"
     },
     {
       "id": "WP-APP-001",
       "depends_on": [
-        "WP-INIT-001",
+        "WP-INIT-002",
         "WP-ARCH-001"
       ],
       "status": "not_started"
@@ -23,7 +30,7 @@
     {
       "id": "WP-MODEL-001",
       "depends_on": [
-        "WP-INIT-001",
+        "WP-INIT-002",
         "WP-ARCH-001"
       ],
       "status": "not_started"
@@ -31,7 +38,7 @@
     {
       "id": "WP-AI-LOCAL-001",
       "depends_on": [
-        "WP-INIT-001",
+        "WP-INIT-002",
         "WP-APP-001",
         "WP-MODEL-001"
       ],
@@ -40,7 +47,7 @@
     {
       "id": "WP-AI-TASK-001",
       "depends_on": [
-        "WP-INIT-001",
+        "WP-INIT-002",
         "WP-APP-001",
         "WP-MODEL-001"
       ],
@@ -49,7 +56,7 @@
     {
       "id": "WP-AI-HISTORY-001",
       "depends_on": [
-        "WP-INIT-001",
+        "WP-INIT-002",
         "WP-AI-LOCAL-001",
         "WP-AI-TASK-001",
         "WP-NET-OPS-001",
@@ -61,9 +68,8 @@
     {
       "id": "WP-REWARD-001",
       "depends_on": [
-        "WP-INIT-001",
+        "WP-INIT-002",
         "WP-CHAIN-001",
-        "WP-SETTLEMENT-FINAL-001",
         "WP-PROTOCOL-REWARDS-001"
       ],
       "status": "not_started"
@@ -71,7 +77,7 @@
     {
       "id": "WP-NET-CREATE-001",
       "depends_on": [
-        "WP-INIT-001",
+        "WP-INIT-002",
         "WP-ARCH-001",
         "WP-MODEL-001",
         "WP-IDENTITY-001"
@@ -81,7 +87,7 @@
     {
       "id": "WP-NET-JOIN-001",
       "depends_on": [
-        "WP-INIT-001",
+        "WP-INIT-002",
         "WP-NET-CREATE-001",
         "WP-IDENTITY-001"
       ],
@@ -90,7 +96,7 @@
     {
       "id": "WP-NET-OPS-001",
       "depends_on": [
-        "WP-INIT-001",
+        "WP-INIT-002",
         "WP-NET-CREATE-001",
         "WP-NET-JOIN-001"
       ],
@@ -99,7 +105,7 @@
     {
       "id": "WP-MARKET-001",
       "depends_on": [
-        "WP-INIT-001",
+        "WP-INIT-002",
         "WP-AI-TASK-001",
         "WP-AI-LOCAL-001",
         "WP-NET-OPS-001"
@@ -109,7 +115,7 @@
     {
       "id": "WP-ORDER-001",
       "depends_on": [
-        "WP-INIT-001",
+        "WP-INIT-002",
         "WP-MARKET-001",
         "WP-AI-TASK-001",
         "WP-CHAIN-001"
@@ -119,7 +125,7 @@
     {
       "id": "WP-DELIVERY-001",
       "depends_on": [
-        "WP-INIT-001",
+        "WP-INIT-002",
         "WP-ORDER-001"
       ],
       "status": "not_started"
@@ -127,7 +133,7 @@
     {
       "id": "WP-FEEDBACK-001",
       "depends_on": [
-        "WP-INIT-001",
+        "WP-INIT-002",
         "WP-ORDER-001",
         "WP-DELIVERY-001"
       ],
@@ -136,7 +142,7 @@
     {
       "id": "WP-IDENTITY-001",
       "depends_on": [
-        "WP-INIT-001",
+        "WP-INIT-002",
         "WP-ARCH-001"
       ],
       "status": "not_started"
@@ -144,7 +150,7 @@
     {
       "id": "WP-CHAIN-001",
       "depends_on": [
-        "WP-INIT-001",
+        "WP-INIT-002",
         "WP-ARCH-001",
         "WP-IDENTITY-001"
       ],
@@ -153,7 +159,7 @@
     {
       "id": "WP-WALLET-001",
       "depends_on": [
-        "WP-INIT-001",
+        "WP-INIT-002",
         "WP-APP-001",
         "WP-CHAIN-001"
       ],
@@ -162,7 +168,7 @@
     {
       "id": "WP-VALIDATOR-001",
       "depends_on": [
-        "WP-INIT-001",
+        "WP-INIT-002",
         "WP-CHAIN-001",
         "WP-IDENTITY-001"
       ],
@@ -171,7 +177,7 @@
     {
       "id": "WP-VERIFY-NODES-001",
       "depends_on": [
-        "WP-INIT-001",
+        "WP-INIT-002",
         "WP-CHAIN-001",
         "WP-IDENTITY-001"
       ],
@@ -180,7 +186,7 @@
     {
       "id": "WP-REPUTATION-001",
       "depends_on": [
-        "WP-INIT-001",
+        "WP-INIT-002",
         "WP-ORDER-001",
         "WP-FEEDBACK-001",
         "WP-CHAIN-001"
@@ -190,7 +196,7 @@
     {
       "id": "WP-SETTLEMENT-RECORD-001",
       "depends_on": [
-        "WP-INIT-001",
+        "WP-INIT-002",
         "WP-ORDER-001",
         "WP-DELIVERY-001",
         "WP-FEEDBACK-001",
@@ -202,7 +208,7 @@
     {
       "id": "WP-VERIFY-STAGE1-001",
       "depends_on": [
-        "WP-INIT-001",
+        "WP-INIT-002",
         "WP-SETTLEMENT-RECORD-001",
         "WP-VERIFY-NODES-001"
       ],
@@ -211,7 +217,7 @@
     {
       "id": "WP-VERIFY-STAGE2-001",
       "depends_on": [
-        "WP-INIT-001",
+        "WP-INIT-002",
         "WP-VERIFY-STAGE1-001",
         "WP-VERIFY-NODES-001"
       ],
@@ -220,17 +226,18 @@
     {
       "id": "WP-SETTLEMENT-FINAL-001",
       "depends_on": [
-        "WP-INIT-001",
+        "WP-INIT-002",
         "WP-VERIFY-STAGE2-001",
         "WP-SETTLEMENT-RECORD-001",
-        "WP-CHAIN-001"
+        "WP-CHAIN-001",
+        "WP-REWARD-001"
       ],
       "status": "not_started"
     },
     {
       "id": "WP-PROTOCOL-REWARDS-001",
       "depends_on": [
-        "WP-INIT-001",
+        "WP-INIT-002",
         "WP-CHAIN-001",
         "WP-VALIDATOR-001",
         "WP-VERIFY-NODES-001"
@@ -240,7 +247,7 @@
     {
       "id": "WP-SECURITY-001",
       "depends_on": [
-        "WP-INIT-001",
+        "WP-INIT-002",
         "WP-ARCH-001"
       ],
       "status": "not_started"
@@ -248,7 +255,7 @@
     {
       "id": "WP-MAINNET-READINESS-001",
       "depends_on": [
-        "WP-INIT-001",
+        "WP-INIT-002",
         "WP-AI-LOCAL-001",
         "WP-NET-OPS-001",
         "WP-ORDER-001",
@@ -262,6 +269,965 @@
         "WP-PROTOCOL-REWARDS-001",
         "WP-SECURITY-001",
         "WP-REWARD-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-ARCH-002",
+      "depends_on": [
+        "WP-ARCH-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-ARCH-003",
+      "depends_on": [
+        "WP-ARCH-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-ARCH-004",
+      "depends_on": [
+        "WP-ARCH-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-ARCH-005",
+      "depends_on": [
+        "WP-ARCH-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-ARCH-006",
+      "depends_on": [
+        "WP-ARCH-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-APP-002",
+      "depends_on": [
+        "WP-APP-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-APP-003",
+      "depends_on": [
+        "WP-APP-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-APP-004",
+      "depends_on": [
+        "WP-APP-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-APP-005",
+      "depends_on": [
+        "WP-APP-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-APP-006",
+      "depends_on": [
+        "WP-APP-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-APP-007",
+      "depends_on": [
+        "WP-APP-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-MODEL-002",
+      "depends_on": [
+        "WP-MODEL-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-MODEL-003",
+      "depends_on": [
+        "WP-MODEL-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-MODEL-004",
+      "depends_on": [
+        "WP-MODEL-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-MODEL-005",
+      "depends_on": [
+        "WP-MODEL-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-MODEL-006",
+      "depends_on": [
+        "WP-MODEL-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-AI-LOCAL-002",
+      "depends_on": [
+        "WP-AI-LOCAL-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-AI-LOCAL-003",
+      "depends_on": [
+        "WP-AI-LOCAL-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-AI-LOCAL-004",
+      "depends_on": [
+        "WP-AI-LOCAL-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-AI-LOCAL-005",
+      "depends_on": [
+        "WP-AI-LOCAL-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-AI-LOCAL-006",
+      "depends_on": [
+        "WP-AI-LOCAL-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-AI-TASK-002",
+      "depends_on": [
+        "WP-AI-TASK-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-AI-TASK-003",
+      "depends_on": [
+        "WP-AI-TASK-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-AI-TASK-004",
+      "depends_on": [
+        "WP-AI-TASK-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-AI-TASK-005",
+      "depends_on": [
+        "WP-AI-TASK-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-AI-HISTORY-002",
+      "depends_on": [
+        "WP-AI-HISTORY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-AI-HISTORY-003",
+      "depends_on": [
+        "WP-AI-HISTORY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-AI-HISTORY-004",
+      "depends_on": [
+        "WP-AI-HISTORY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-REWARD-002",
+      "depends_on": [
+        "WP-REWARD-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-REWARD-003",
+      "depends_on": [
+        "WP-REWARD-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-REWARD-004",
+      "depends_on": [
+        "WP-REWARD-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-REWARD-005",
+      "depends_on": [
+        "WP-REWARD-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-NET-CREATE-002",
+      "depends_on": [
+        "WP-NET-CREATE-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-NET-CREATE-003",
+      "depends_on": [
+        "WP-NET-CREATE-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-NET-CREATE-004",
+      "depends_on": [
+        "WP-NET-CREATE-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-NET-CREATE-005",
+      "depends_on": [
+        "WP-NET-CREATE-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-NET-CREATE-006",
+      "depends_on": [
+        "WP-NET-CREATE-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-NET-JOIN-002",
+      "depends_on": [
+        "WP-NET-JOIN-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-NET-JOIN-003",
+      "depends_on": [
+        "WP-NET-JOIN-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-NET-JOIN-004",
+      "depends_on": [
+        "WP-NET-JOIN-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-NET-JOIN-005",
+      "depends_on": [
+        "WP-NET-JOIN-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-NET-OPS-002",
+      "depends_on": [
+        "WP-NET-OPS-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-NET-OPS-003",
+      "depends_on": [
+        "WP-NET-OPS-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-NET-OPS-004",
+      "depends_on": [
+        "WP-NET-OPS-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-NET-OPS-005",
+      "depends_on": [
+        "WP-NET-OPS-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-NET-OPS-006",
+      "depends_on": [
+        "WP-NET-OPS-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-NET-OPS-007",
+      "depends_on": [
+        "WP-NET-OPS-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-MARKET-002",
+      "depends_on": [
+        "WP-MARKET-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-MARKET-003",
+      "depends_on": [
+        "WP-MARKET-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-MARKET-004",
+      "depends_on": [
+        "WP-MARKET-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-MARKET-005",
+      "depends_on": [
+        "WP-MARKET-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-MARKET-006",
+      "depends_on": [
+        "WP-MARKET-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-ORDER-002",
+      "depends_on": [
+        "WP-ORDER-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-ORDER-003",
+      "depends_on": [
+        "WP-ORDER-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-ORDER-004",
+      "depends_on": [
+        "WP-ORDER-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-ORDER-005",
+      "depends_on": [
+        "WP-ORDER-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-ORDER-006",
+      "depends_on": [
+        "WP-ORDER-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-ORDER-007",
+      "depends_on": [
+        "WP-ORDER-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-ORDER-008",
+      "depends_on": [
+        "WP-ORDER-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-ORDER-009",
+      "depends_on": [
+        "WP-ORDER-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-DELIVERY-002",
+      "depends_on": [
+        "WP-DELIVERY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-DELIVERY-003",
+      "depends_on": [
+        "WP-DELIVERY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-DELIVERY-004",
+      "depends_on": [
+        "WP-DELIVERY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-DELIVERY-005",
+      "depends_on": [
+        "WP-DELIVERY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-DELIVERY-006",
+      "depends_on": [
+        "WP-DELIVERY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-DELIVERY-007",
+      "depends_on": [
+        "WP-DELIVERY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-FEEDBACK-002",
+      "depends_on": [
+        "WP-FEEDBACK-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-FEEDBACK-003",
+      "depends_on": [
+        "WP-FEEDBACK-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-FEEDBACK-004",
+      "depends_on": [
+        "WP-FEEDBACK-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-IDENTITY-002",
+      "depends_on": [
+        "WP-IDENTITY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-IDENTITY-003",
+      "depends_on": [
+        "WP-IDENTITY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-IDENTITY-004",
+      "depends_on": [
+        "WP-IDENTITY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-IDENTITY-005",
+      "depends_on": [
+        "WP-IDENTITY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-IDENTITY-006",
+      "depends_on": [
+        "WP-IDENTITY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-CHAIN-002",
+      "depends_on": [
+        "WP-CHAIN-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-CHAIN-003",
+      "depends_on": [
+        "WP-CHAIN-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-CHAIN-004",
+      "depends_on": [
+        "WP-CHAIN-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-CHAIN-005",
+      "depends_on": [
+        "WP-CHAIN-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-CHAIN-006",
+      "depends_on": [
+        "WP-CHAIN-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-CHAIN-007",
+      "depends_on": [
+        "WP-CHAIN-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-WALLET-002",
+      "depends_on": [
+        "WP-WALLET-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-WALLET-003",
+      "depends_on": [
+        "WP-WALLET-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-WALLET-004",
+      "depends_on": [
+        "WP-WALLET-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-WALLET-005",
+      "depends_on": [
+        "WP-WALLET-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-WALLET-006",
+      "depends_on": [
+        "WP-WALLET-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-WALLET-007",
+      "depends_on": [
+        "WP-WALLET-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-VALIDATOR-002",
+      "depends_on": [
+        "WP-VALIDATOR-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-VALIDATOR-003",
+      "depends_on": [
+        "WP-VALIDATOR-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-VALIDATOR-004",
+      "depends_on": [
+        "WP-VALIDATOR-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-VALIDATOR-005",
+      "depends_on": [
+        "WP-VALIDATOR-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-VERIFY-NODES-002",
+      "depends_on": [
+        "WP-VERIFY-NODES-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-VERIFY-NODES-003",
+      "depends_on": [
+        "WP-VERIFY-NODES-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-VERIFY-NODES-004",
+      "depends_on": [
+        "WP-VERIFY-NODES-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-VERIFY-NODES-005",
+      "depends_on": [
+        "WP-VERIFY-NODES-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-VERIFY-NODES-006",
+      "depends_on": [
+        "WP-VERIFY-NODES-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-VERIFY-NODES-007",
+      "depends_on": [
+        "WP-VERIFY-NODES-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-REPUTATION-002",
+      "depends_on": [
+        "WP-REPUTATION-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-REPUTATION-003",
+      "depends_on": [
+        "WP-REPUTATION-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-REPUTATION-004",
+      "depends_on": [
+        "WP-REPUTATION-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-REPUTATION-005",
+      "depends_on": [
+        "WP-REPUTATION-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-REPUTATION-006",
+      "depends_on": [
+        "WP-REPUTATION-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-SETTLEMENT-RECORD-002",
+      "depends_on": [
+        "WP-SETTLEMENT-RECORD-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-SETTLEMENT-RECORD-003",
+      "depends_on": [
+        "WP-SETTLEMENT-RECORD-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-SETTLEMENT-RECORD-004",
+      "depends_on": [
+        "WP-SETTLEMENT-RECORD-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-SETTLEMENT-RECORD-005",
+      "depends_on": [
+        "WP-SETTLEMENT-RECORD-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-SETTLEMENT-RECORD-006",
+      "depends_on": [
+        "WP-SETTLEMENT-RECORD-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-VERIFY-STAGE1-002",
+      "depends_on": [
+        "WP-VERIFY-STAGE1-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-VERIFY-STAGE1-003",
+      "depends_on": [
+        "WP-VERIFY-STAGE1-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-VERIFY-STAGE1-004",
+      "depends_on": [
+        "WP-VERIFY-STAGE1-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-VERIFY-STAGE1-005",
+      "depends_on": [
+        "WP-VERIFY-STAGE1-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-VERIFY-STAGE2-002",
+      "depends_on": [
+        "WP-VERIFY-STAGE2-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-VERIFY-STAGE2-003",
+      "depends_on": [
+        "WP-VERIFY-STAGE2-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-VERIFY-STAGE2-004",
+      "depends_on": [
+        "WP-VERIFY-STAGE2-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-VERIFY-STAGE2-005",
+      "depends_on": [
+        "WP-VERIFY-STAGE2-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-SETTLEMENT-FINAL-002",
+      "depends_on": [
+        "WP-SETTLEMENT-FINAL-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-SETTLEMENT-FINAL-003",
+      "depends_on": [
+        "WP-SETTLEMENT-FINAL-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-SETTLEMENT-FINAL-004",
+      "depends_on": [
+        "WP-SETTLEMENT-FINAL-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-SETTLEMENT-FINAL-005",
+      "depends_on": [
+        "WP-SETTLEMENT-FINAL-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-SETTLEMENT-FINAL-006",
+      "depends_on": [
+        "WP-SETTLEMENT-FINAL-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-PROTOCOL-REWARDS-002",
+      "depends_on": [
+        "WP-PROTOCOL-REWARDS-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-PROTOCOL-REWARDS-003",
+      "depends_on": [
+        "WP-PROTOCOL-REWARDS-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-PROTOCOL-REWARDS-004",
+      "depends_on": [
+        "WP-PROTOCOL-REWARDS-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-PROTOCOL-REWARDS-005",
+      "depends_on": [
+        "WP-PROTOCOL-REWARDS-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-PROTOCOL-REWARDS-006",
+      "depends_on": [
+        "WP-PROTOCOL-REWARDS-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-SECURITY-002",
+      "depends_on": [
+        "WP-SECURITY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-SECURITY-003",
+      "depends_on": [
+        "WP-SECURITY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-SECURITY-004",
+      "depends_on": [
+        "WP-SECURITY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-SECURITY-005",
+      "depends_on": [
+        "WP-SECURITY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-SECURITY-006",
+      "depends_on": [
+        "WP-SECURITY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-SECURITY-007",
+      "depends_on": [
+        "WP-SECURITY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-SECURITY-008",
+      "depends_on": [
+        "WP-SECURITY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-MAINNET-READINESS-002",
+      "depends_on": [
+        "WP-MAINNET-READINESS-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-MAINNET-READINESS-003",
+      "depends_on": [
+        "WP-MAINNET-READINESS-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-MAINNET-READINESS-004",
+      "depends_on": [
+        "WP-MAINNET-READINESS-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-MAINNET-READINESS-005",
+      "depends_on": [
+        "WP-MAINNET-READINESS-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-MAINNET-READINESS-006",
+      "depends_on": [
+        "WP-MAINNET-READINESS-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-MAINNET-READINESS-007",
+      "depends_on": [
+        "WP-MAINNET-READINESS-001"
       ],
       "status": "not_started"
     }

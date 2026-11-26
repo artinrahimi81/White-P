@@ -29,3 +29,12 @@ The dependency graph contains only genuine output/contract prerequisites. The pr
 ## WP-INIT-001 — Project Structure Engineer durable note
 
 The selected task workspace is Production/Development/Tasks/WP-INIT-001/. All ten fixed role work-log filenames and task-status.md follow the Senior Engineer prompt. Baseline changes remain under Production/Development/base-documents/. The source specification and collaboration rules are preserved and were not moved, copied, renamed or edited.
+
+
+## WP-INIT-002 — Feasibility Engineer durable note
+
+The expanded graph distinguishes domain specification gates from smaller child work packages. Edges represent only required outputs/contracts, not a preferred sequence. No unsupported schedule, budget, throughput or capacity estimate was created. Unresolved external dependencies and approval gates remain visible in the catalog.
+
+## WP-INIT-002 — Project Structure Engineer durable note
+
+The follow-up workspace is Production/Development/Tasks/WP-INIT-002/. The ten required role work-log files and task-status.md use the fixed names. Original WP-INIT-001 paths and identifiers remain preserved. All new/updated artifacts are contained within Production/Development; future child task workspaces are not pre-created.
