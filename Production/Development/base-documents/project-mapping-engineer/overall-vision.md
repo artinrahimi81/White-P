@@ -38,3 +38,9 @@ The original completed WP-INIT-001 is preserved. WP-INIT-002 deepens its output 
 ## WP-INIT-002 — Project Mapping Engineer durable note
 
 The expanded catalog maps the 32-section source to 166 task identities. Each original domain -001 task is the specification/contract baseline for its children. Child tasks have one primary owner, source references, objective, scope, exclusion, output, acceptance and direct prerequisites. Current repository state remains distinct from intended product state; no application implementation is claimed.
+
+
+## WP-INIT-003 — Mapping, intent and orchestration durable notes
+- Task breakdown now has 27 domain specification gates, 137 intermediate roll-up packages and 280 execution-level leaves.
+- Parent/child grouping is not a blocking dependency: parents wait for leaves; leaves depend on actual domain prerequisites and WP-INIT-003. This avoids cycles.
+- Product scope and unresolved decisions remain preserved; planning does not imply implementation.

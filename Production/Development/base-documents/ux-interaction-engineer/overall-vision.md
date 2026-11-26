@@ -30,3 +30,8 @@ The decomposition preserves journeys from local inference and network participat
 ## WP-INIT-002 — UX and Interaction Engineer durable note
 
 The task breakdown now separates the application shell, navigation, dashboard, settings, local inference, network participation, Defined Tasks, marketplace, ordering, delivery, feedback, wallet and verification interactions into individually verifiable work packages. Each user-facing child should specify entry conditions, controls, validation, progress/empty/error/cancel states, authorization, recovery and accessibility acceptance. No Feedback and Dispute remain distinct; pending chain payment is not finality.
+
+
+## WP-INIT-003 — UX durable note
+- Execution-level definitions preserve user journeys, explicit states, authorization, error/cancellation/recovery and accessibility acceptance where relevant.
+- No Feedback is not positive or negative; Not Satisfied alone is not misconduct; chain confirmation is not finality; Frozen remains payout-blocking under approved policy.

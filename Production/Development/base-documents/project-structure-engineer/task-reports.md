@@ -45,3 +45,18 @@ No task reports have been recorded yet.
 - Evidence: recursive online tree and exact changed-path review; all new paths remain within Production/Development.
 - Acceptance: parent/child naming and selected-task workspace follow the existing Senior Engineer conventions.
 - Execution mode: same-assistant role-scoped pass; not independent agent execution.
+
+
+## WP-INIT-003 — Feasibility Engineer report
+- Reviewed decomposition granularity, distinct outputs, prerequisites, external constraints and uncertainty.
+- Each leaf has a bounded output and acceptance criterion. Cost, schedule, capacity and performance estimates were not invented.
+- Runtime, licences, custody, FX/payments, consensus, tokenomics, committee selection, retention and legal questions remain decision gates.
+- Acceptance: complete planning breakdown; all execution tasks remain not_started.
+- Same-assistant sequential role-scoped review; not independent agent execution.
+
+## WP-INIT-003 — Project Structure Engineer report
+- Added four lowercase-kebab-case files under Production/Development/execution-work-breakdown/.
+- Created only the selected WP-INIT-003 workspace and ten fixed role logs; no child task workspaces were pre-created.
+- Preserved all IDs, source, prior initialization records and other project files.
+- 447 unique graph/catalog IDs and 1,077 edges; no deletion or path outside Production/Development.
+- Same-assistant sequential role-scoped review; not independent agent execution.

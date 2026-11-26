@@ -42,3 +42,17 @@ No task reports have been recorded yet.
 - Test result: static structure/traceability validation passed. No product build, UI test, runtime test or implementation test was run or claimed because WP-INIT-002 is planning-only.
 - Defects/limitations: no graph structural defect remained; open source decisions are not accepted as resolved. QA was performed by the same assistant, not an independent agent instance.
 - Acceptance: catalog and graph pass the defined static checks.
+
+
+## WP-INIT-003 — Safety Engineer report
+- Reviewed identity/key boundaries, node communications, intermediate AI data, prompt injection, private delivery, wallet, committee independence and settlement integrity.
+- Cross-cutting and feature-specific security remain distinct; transport encryption is not described as hiding plaintext from compute nodes.
+- Custody, Sybil mechanisms, cryptographic choices, retention and response authority remain open where unapproved.
+- No control is claimed implemented/effective; this task decomposes requirements only.
+- Same-assistant sequential role-scoped review; not independent agent execution.
+
+## WP-INIT-003 — Quality and Testing Engineer report
+- Static validation: 447 matching catalog/graph IDs; exact three-key task nodes; 1,077 edges; all refs/statuses valid; no self/duplicate edge or cycle; 447/447 topological traversal.
+- 137/137 parents map to 280 leaves; every leaf has required contract fields; 3 init tasks done and 444 other tasks not_started.
+- All changed paths remain under Production/Development; no deletions; source and prior task histories preserved.
+- No product build/runtime/feature test or independent QA was performed or claimed.

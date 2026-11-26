@@ -38,3 +38,10 @@ The expanded graph distinguishes domain specification gates from smaller child w
 ## WP-INIT-002 — Project Structure Engineer durable note
 
 The follow-up workspace is Production/Development/Tasks/WP-INIT-002/. The ten required role work-log files and task-status.md use the fixed names. Original WP-INIT-001 paths and identifiers remain preserved. All new/updated artifacts are contained within Production/Development; future child task workspaces are not pre-created.
+
+
+## WP-INIT-003 — Feasibility and structure durable notes
+- New identifiers continue the WP-DOMAIN-NNN scheme without renumbering prior tasks.
+- Four domain-coherent breakdown files are stored in Production/Development/execution-work-breakdown/.
+- Child task workspaces are not created ahead of Senior Engineer selection; parent roll-up dependencies are explicit and DAG-validated.
+- Unsupported estimates and external approvals remain evidence-gated.

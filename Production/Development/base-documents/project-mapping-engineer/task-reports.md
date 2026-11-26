@@ -46,3 +46,25 @@ No task reports have been recorded yet.
 - Evidence: complete source and prior WP-INIT-001 status/histories inspected; catalog/graph contains 166 matching IDs.
 - Acceptance: source traceability and work-package ownership reviewed; no task is marked done merely because it was defined.
 - Execution mode: same-assistant role-scoped pass; not independent agent execution.
+
+
+## WP-INIT-003 — Project Mapping Engineer report
+- Mapped all 32 source sections and all 137 existing granular packages into 280 execution-level tasks.
+- Every leaf records a unique ID, parent, owner, type, source subsection, objective, scope, exclusions, output, acceptance, evidence and direct prerequisites.
+- Four detail files cover architecture/desktop/AI, compute-network/marketplace, order/delivery/identity/settlement, and blockchain/security/readiness.
+- Parent/leaf graph semantics are explicit: parents wait for leaves; leaves wait on real prerequisites plus WP-INIT-003, not their own parent.
+- Catalog and graph contain 447 matching IDs. Repository remains planning-only; no product implementation is claimed.
+- Execution mode: same-assistant sequential role-scoped review, not independent agent execution.
+
+## WP-INIT-003 — Idea Alignment Engineer report
+- Preserved the approved Windows-first local/distributed AI purpose and distinct blockchain network.
+- No new product capability, platform, technology, economic rule or legal conclusion was introduced.
+- Runtime/licensing, payments/FX, custody, consensus, tokenomics, committee selection, Reputation and privacy decisions remain open.
+- Prior IDs/history preserved; all new leaves remain not_started.
+- Acceptance: intent and boundaries preserved without assumptions becoming approvals.
+
+## WP-INIT-003 — Senior Engineer report
+- Integrated 280 execution leaves under 137 intermediate packages; retained the 27 domain baselines and previous task IDs/history.
+- Inventory is 447 unique tasks and 1,077 direct edges; parent roll-ups are acyclic and leaves have genuine prerequisites.
+- Static validation traversed 447/447 nodes; catalog/graph parity, exact node shape and path scope passed.
+- No product implementation/runtime testing or independent agent run is claimed.

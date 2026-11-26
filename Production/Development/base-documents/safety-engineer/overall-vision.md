@@ -30,3 +30,9 @@ Security decomposition covers model provenance, compute/chain separation, node a
 ## WP-INIT-002 — Safety Engineer durable note
 
 The expanded work breakdown preserves a security task at both system and feature level. It separates identity/key lifecycle, authorization, supply-chain provenance, sandboxing/prompt injection, node communication, intermediate-data privacy, private file access, committee independence, settlement signatures and incident response. Transport encryption is not described as preventing participating compute nodes from seeing plaintext intermediate data. Proposed controls remain distinct from implemented/effective controls.
+
+
+## WP-INIT-003 — Safety and QA durable notes
+- Identity/role credentials, compute-node plaintext exposure, prompts, private files, settlement evidence and public-chain commitments remain distinct security boundaries.
+- Security effectiveness must be proven by later implementation tests; a task definition does not establish a deployed control.
+- Static QA validates planning artifacts only and is not independent product verification.
