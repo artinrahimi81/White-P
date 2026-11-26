@@ -1,5 +1,269 @@
 {
   "tasks": [
-    { "id": "WP-INIT-001", "depends_on": [], "status": "not_started" }
+    {
+      "id": "WP-INIT-001",
+      "depends_on": [],
+      "status": "done"
+    },
+    {
+      "id": "WP-ARCH-001",
+      "depends_on": [
+        "WP-INIT-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-APP-001",
+      "depends_on": [
+        "WP-INIT-001",
+        "WP-ARCH-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-MODEL-001",
+      "depends_on": [
+        "WP-INIT-001",
+        "WP-ARCH-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-AI-LOCAL-001",
+      "depends_on": [
+        "WP-INIT-001",
+        "WP-APP-001",
+        "WP-MODEL-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-AI-TASK-001",
+      "depends_on": [
+        "WP-INIT-001",
+        "WP-APP-001",
+        "WP-MODEL-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-AI-HISTORY-001",
+      "depends_on": [
+        "WP-INIT-001",
+        "WP-AI-LOCAL-001",
+        "WP-AI-TASK-001",
+        "WP-NET-OPS-001",
+        "WP-ORDER-001",
+        "WP-REWARD-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-REWARD-001",
+      "depends_on": [
+        "WP-INIT-001",
+        "WP-CHAIN-001",
+        "WP-SETTLEMENT-FINAL-001",
+        "WP-PROTOCOL-REWARDS-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-NET-CREATE-001",
+      "depends_on": [
+        "WP-INIT-001",
+        "WP-ARCH-001",
+        "WP-MODEL-001",
+        "WP-IDENTITY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-NET-JOIN-001",
+      "depends_on": [
+        "WP-INIT-001",
+        "WP-NET-CREATE-001",
+        "WP-IDENTITY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-NET-OPS-001",
+      "depends_on": [
+        "WP-INIT-001",
+        "WP-NET-CREATE-001",
+        "WP-NET-JOIN-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-MARKET-001",
+      "depends_on": [
+        "WP-INIT-001",
+        "WP-AI-TASK-001",
+        "WP-AI-LOCAL-001",
+        "WP-NET-OPS-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-ORDER-001",
+      "depends_on": [
+        "WP-INIT-001",
+        "WP-MARKET-001",
+        "WP-AI-TASK-001",
+        "WP-CHAIN-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-DELIVERY-001",
+      "depends_on": [
+        "WP-INIT-001",
+        "WP-ORDER-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-FEEDBACK-001",
+      "depends_on": [
+        "WP-INIT-001",
+        "WP-ORDER-001",
+        "WP-DELIVERY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-IDENTITY-001",
+      "depends_on": [
+        "WP-INIT-001",
+        "WP-ARCH-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-CHAIN-001",
+      "depends_on": [
+        "WP-INIT-001",
+        "WP-ARCH-001",
+        "WP-IDENTITY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-WALLET-001",
+      "depends_on": [
+        "WP-INIT-001",
+        "WP-APP-001",
+        "WP-CHAIN-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-VALIDATOR-001",
+      "depends_on": [
+        "WP-INIT-001",
+        "WP-CHAIN-001",
+        "WP-IDENTITY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-VERIFY-NODES-001",
+      "depends_on": [
+        "WP-INIT-001",
+        "WP-CHAIN-001",
+        "WP-IDENTITY-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-REPUTATION-001",
+      "depends_on": [
+        "WP-INIT-001",
+        "WP-ORDER-001",
+        "WP-FEEDBACK-001",
+        "WP-CHAIN-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-SETTLEMENT-RECORD-001",
+      "depends_on": [
+        "WP-INIT-001",
+        "WP-ORDER-001",
+        "WP-DELIVERY-001",
+        "WP-FEEDBACK-001",
+        "WP-REPUTATION-001",
+        "WP-CHAIN-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-VERIFY-STAGE1-001",
+      "depends_on": [
+        "WP-INIT-001",
+        "WP-SETTLEMENT-RECORD-001",
+        "WP-VERIFY-NODES-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-VERIFY-STAGE2-001",
+      "depends_on": [
+        "WP-INIT-001",
+        "WP-VERIFY-STAGE1-001",
+        "WP-VERIFY-NODES-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-SETTLEMENT-FINAL-001",
+      "depends_on": [
+        "WP-INIT-001",
+        "WP-VERIFY-STAGE2-001",
+        "WP-SETTLEMENT-RECORD-001",
+        "WP-CHAIN-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-PROTOCOL-REWARDS-001",
+      "depends_on": [
+        "WP-INIT-001",
+        "WP-CHAIN-001",
+        "WP-VALIDATOR-001",
+        "WP-VERIFY-NODES-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-SECURITY-001",
+      "depends_on": [
+        "WP-INIT-001",
+        "WP-ARCH-001"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WP-MAINNET-READINESS-001",
+      "depends_on": [
+        "WP-INIT-001",
+        "WP-AI-LOCAL-001",
+        "WP-NET-OPS-001",
+        "WP-ORDER-001",
+        "WP-DELIVERY-001",
+        "WP-FEEDBACK-001",
+        "WP-WALLET-001",
+        "WP-VALIDATOR-001",
+        "WP-VERIFY-STAGE1-001",
+        "WP-VERIFY-STAGE2-001",
+        "WP-SETTLEMENT-FINAL-001",
+        "WP-PROTOCOL-REWARDS-001",
+        "WP-SECURITY-001",
+        "WP-REWARD-001"
+      ],
+      "status": "not_started"
+    }
   ]
 }

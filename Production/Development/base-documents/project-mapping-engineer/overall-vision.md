@@ -21,3 +21,11 @@ Maintain a traceable, evidence-based map of requirements, product components, wo
 
 ## Append-only durable task notes
 Append concise task-ID-labelled maps, traceability changes, verified component relationships, and durable unknowns. Never rewrite prior entries.
+
+## WP-INIT-001 — Senior Engineer durable note
+
+The specification is decomposed into 27 bounded product-development tasks plus WP-INIT-001. The catalog maps all 32 numbered sections, separates current repository state from target product state, and preserves unresolved decisions. The dependency graph is the sole authority for IDs, genuine direct prerequisites and status. Role reviews were same-assistant sequential passes; independent agent execution is not claimed.
+
+## WP-INIT-001 — Project Mapping Engineer durable note
+
+Traceability covers introductory/final material and every numbered source section. The product remains a Windows-first local/distributed AI application with a distinct but connected blockchain network. Pipeline Parallelism is not conflated with Tensor Parallelism. The inspected repository is documentation/process-only; target components are not described as implemented. Wallet custody and other unresolved decisions remain explicit.

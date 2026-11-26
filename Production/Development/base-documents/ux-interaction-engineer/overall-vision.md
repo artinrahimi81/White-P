@@ -21,3 +21,7 @@ Keep the application understandable, predictable, efficient, accessible, and rec
 
 ## Append-only durable task notes
 Append concise task-ID-labelled journey constraints, interaction decisions, accessibility lessons, and unresolved usability issues. Never rewrite prior entries.
+
+## WP-INIT-001 — UX and Interaction Engineer durable note
+
+The decomposition preserves journeys from local inference and network participation through service discovery, ordering, delivery, customer feedback, two-stage verification and final settlement. No Feedback is not automatically positive or negative; Not Satisfied alone does not prove misconduct. Windows desktop, English UI, recovery, accessibility and explicit state-transition criteria remain part of downstream acceptance.

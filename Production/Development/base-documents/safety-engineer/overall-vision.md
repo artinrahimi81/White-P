@@ -21,3 +21,7 @@ Preserve safety, security, privacy, and operational trust throughout development
 
 ## Append-only durable task notes
 Append only concise, verified, task-ID-labelled principles, risks, decisions, and unresolved security/privacy constraints. Never alter earlier entries.
+
+## WP-INIT-001 — Safety Engineer durable note
+
+Security decomposition covers model provenance, compute/chain separation, node and role identities, prompts/customer data, intermediate distributed data, wallet keys, payments/escrow, private delivery, settlement records and committee signatures. Transport encryption alone is not represented as confidentiality of intermediate model data. Private files/customer data remain off public chain. Proposed controls and residual risks are separate from implemented/effective controls.

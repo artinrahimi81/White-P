@@ -21,3 +21,11 @@ Keep repository paths, naming, directories, references, and file ownership coher
 
 ## Append-only durable task notes
 Append only concise, verified, task-ID-labelled structural constraints and lessons. Never alter earlier entries.
+
+## WP-INIT-001 — Feasibility Engineer durable note
+
+The dependency graph contains only genuine output/contract prerequisites. The proposed development stages in source Section 30 are advisory and do not automatically become dependency edges. No unsupported development duration, cost, throughput or capacity estimate was introduced; external dependencies and evidence gaps remain visible in task definitions.
+
+## WP-INIT-001 — Project Structure Engineer durable note
+
+The selected task workspace is Production/Development/Tasks/WP-INIT-001/. All ten fixed role work-log filenames and task-status.md follow the Senior Engineer prompt. Baseline changes remain under Production/Development/base-documents/. The source specification and collaboration rules are preserved and were not moved, copied, renamed or edited.
