@@ -81,7 +81,7 @@ Normal activation_count is 0 before starting and exactly 1 after the role begins
 
 | Parameter ID | Fixed check (copied from prompt) | Expected result | Evidence | Status |
 |---|---|---|---|---|
-| SE-01 … SE-07 | <COPY_EXACT_CHECK> | <EXPECTED> | <EVIDENCE> | <STATUS> |
+| SE-01 … SE-16 | <COPY_EXACT_CHECK_ONE_ROW_PER_ID> | <EXPECTED> | <EVIDENCE> | <STATUS> |
 
 **Group 2 — task-specific parameters:** Define only checks needed for this task; do not duplicate Group 1.
 
