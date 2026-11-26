@@ -7,7 +7,7 @@
 - Task ID: <TASK_ID>
 - Task title: <TITLE_FROM_TASK_CATALOG>
 - Objective: <ONE_CLEAR_OUTCOME>
-- Graph status: <not_started | in_progress | done | blocked>
+- Graph status: <not_started | in_progress | done | blocked | deferred_final>
 - Execution phase: <planning | specialist_execution | integration | final_review | blocked>
 - Selected by: senior-engineer
 - Selection reason: <WHY_THIS_TASK_IS_NEXT>
@@ -263,7 +263,7 @@ Rules:
 - Safety risks requiring owner approval: <LIST_OR_NONE>
 - Remaining blockers/open decisions: <LIST_OR_NONE>
 - Senior Engineer's final decision and rationale: <DETAIL>
-- Final graph status: <done | in_progress | blocked>
+- Final graph status: <done | in_progress | blocked | deferred_final>
 - Graph update evidence: <COMMIT/PATH/RESULT>
 
 Only the Senior Engineer changes dependency-graph.json. Mark a task done only after actual outputs and all applicable acceptance checks are evidenced; agent completion declarations alone are insufficient.
