@@ -60,6 +60,8 @@ For every role, record why it is selected or why it is not applicable. Preserve 
 
 Agent states: not_scheduled, queued, active, completed, not_applicable, blocked.
 
+For every role, retain one Markdown Group 1 row per fixed parameter from the Senior Engineer's canonical registry. Do not replace several checks with one summary row. Before activation, selected roles' fixed checks start as pending; a role judged not applicable must show every fixed check as not_applicable and include the reason. Every row records the exact check text, expected result, evidence required and status.
+
 Parameter review states: pending, passed, issue_found, not_applicable, needs_consultation.
 
 Normal activation_count is 0 before starting and exactly 1 after the role begins its one normal turn. Resuming an already active role from its work-log does not increment the count. Consultation-only replies do not increment it. A completed role cannot be reactivated for normal work.
@@ -75,7 +77,7 @@ Normal activation_count is 0 before starting and exactly 1 after the role begins
 - Work log: Tasks/<TASK_ID>/senior-engineer/work-log.md
 - Base-document destination: <ONE_OF_FIVE_EXISTING_FOLDERS>
 
-**Group 1 — fixed Senior Engineer parameters:** Copy SE-01 through SE-07 with their exact checks from agents/senior-engineer.md. Give each an expected result, required evidence and one review status.
+**Group 1 — fixed Senior Engineer parameters:** Copy SE-01 through SE-07 verbatim from the canonical fixed-parameter registry in agents/senior-engineer.md. Give each an expected result, required evidence and one review status.
 
 | Parameter ID | Fixed check (copied from prompt) | Expected result | Evidence | Status |
 |---|---|---|---|---|
@@ -96,7 +98,7 @@ Normal activation_count is 0 before starting and exactly 1 after the role begins
 - Work log: Tasks/<TASK_ID>/execution-engineer/work-log.md
 - Base-document destination: <ONE_OF_FIVE_EXISTING_FOLDERS>
 
-Group 1: copy EX-01 through EX-07 from the fixed prompt with expected result, evidence and status.
+Group 1: copy every EX-01 through EX-07 check verbatim from the canonical fixed-parameter registry in agents/senior-engineer.md, using one row per ID. Give each its own expected result, evidence and status.
 Group 2: define unique EX-T01, EX-T02, … task-specific checks without duplicating Group 1.
 
 | Parameter ID | Group (1 fixed / 2 task-specific) | Check/action | Expected result | Evidence | Status |
@@ -112,7 +114,7 @@ Group 2: define unique EX-T01, EX-T02, … task-specific checks without duplicat
 - Work log: Tasks/<TASK_ID>/qa-testing-engineer/work-log.md
 - Base-document destination: <ONE_OF_FIVE_EXISTING_FOLDERS>
 
-Group 1: copy QA-01 through QA-08 from the fixed prompt. Group 2: define unique QA-T01, QA-T02, … task-specific checks.
+Group 1: copy every QA-01 through QA-08 check verbatim from the canonical fixed-parameter registry in agents/senior-engineer.md, using one row per ID. Group 2: define unique QA-T01, QA-T02, … task-specific checks.
 
 | Parameter ID | Group (1 fixed / 2 task-specific) | Check/action | Expected result | Evidence | Status |
 |---|---|---|---|---|---|
@@ -127,7 +129,7 @@ Group 1: copy QA-01 through QA-08 from the fixed prompt. Group 2: define unique 
 - Work log: Tasks/<TASK_ID>/safety-engineer/work-log.md
 - Base-document destination: base-documents/safety-engineer/
 
-Group 1: copy SAF-01 through SAF-07 from the fixed prompt. Group 2: define unique SAF-T01, SAF-T02, … task-specific checks.
+Group 1: copy every SAF-01 through SAF-07 check verbatim from the canonical fixed-parameter registry in agents/senior-engineer.md, using one row per ID. Group 2: define unique SAF-T01, SAF-T02, … task-specific checks.
 
 | Parameter ID | Group (1 fixed / 2 task-specific) | Check/action | Expected result | Evidence | Status |
 |---|---|---|---|---|---|
@@ -142,7 +144,7 @@ Group 1: copy SAF-01 through SAF-07 from the fixed prompt. Group 2: define uniqu
 - Work log: Tasks/<TASK_ID>/project-structure-engineer/work-log.md
 - Base-document destination: base-documents/project-structure-engineer/
 
-Group 1: copy PS-01 through PS-07 from the fixed prompt. Group 2: define unique PS-T01, PS-T02, … task-specific checks.
+Group 1: copy every PS-01 through PS-07 check verbatim from the canonical fixed-parameter registry in agents/senior-engineer.md, using one row per ID. Group 2: define unique PS-T01, PS-T02, … task-specific checks.
 
 | Parameter ID | Group (1 fixed / 2 task-specific) | Check/action | Expected result | Evidence | Status |
 |---|---|---|---|---|---|
@@ -157,7 +159,7 @@ Group 1: copy PS-01 through PS-07 from the fixed prompt. Group 2: define unique 
 - Work log: Tasks/<TASK_ID>/design-engineer/work-log.md
 - Base-document destination: base-documents/design-engineer/
 
-Group 1: copy DE-01 through DE-08 from the fixed prompt. Group 2: define unique DE-T01, DE-T02, … task-specific checks.
+Group 1: copy every DE-01 through DE-08 check verbatim from the canonical fixed-parameter registry in agents/senior-engineer.md, using one row per ID. Group 2: define unique DE-T01, DE-T02, … task-specific checks.
 
 | Parameter ID | Group (1 fixed / 2 task-specific) | Check/action | Expected result | Evidence | Status |
 |---|---|---|---|---|---|
@@ -172,7 +174,7 @@ Group 1: copy DE-01 through DE-08 from the fixed prompt. Group 2: define unique 
 - Work log: Tasks/<TASK_ID>/ux-interaction-engineer/work-log.md
 - Base-document destination: base-documents/ux-interaction-engineer/
 
-Group 1: copy UX-01 through UX-08 from the fixed prompt. Group 2: define unique UX-T01, UX-T02, … task-specific checks.
+Group 1: copy every UX-01 through UX-08 check verbatim from the canonical fixed-parameter registry in agents/senior-engineer.md, using one row per ID. Group 2: define unique UX-T01, UX-T02, … task-specific checks.
 
 | Parameter ID | Group (1 fixed / 2 task-specific) | Check/action | Expected result | Evidence | Status |
 |---|---|---|---|---|---|
@@ -187,7 +189,7 @@ Group 1: copy UX-01 through UX-08 from the fixed prompt. Group 2: define unique 
 - Work log: Tasks/<TASK_ID>/feasibility-engineer/work-log.md
 - Base-document destination: <ONE_OF_FIVE_EXISTING_FOLDERS>
 
-Group 1: copy FE-01 through FE-07 from the fixed prompt. Group 2: define unique FE-T01, FE-T02, … task-specific checks.
+Group 1: copy every FE-01 through FE-07 check verbatim from the canonical fixed-parameter registry in agents/senior-engineer.md, using one row per ID. Group 2: define unique FE-T01, FE-T02, … task-specific checks.
 
 | Parameter ID | Group (1 fixed / 2 task-specific) | Check/action | Expected result | Evidence | Status |
 |---|---|---|---|---|---|
@@ -202,7 +204,7 @@ Group 1: copy FE-01 through FE-07 from the fixed prompt. Group 2: define unique 
 - Work log: Tasks/<TASK_ID>/idea-alignment-engineer/work-log.md
 - Base-document destination: <ONE_OF_FIVE_EXISTING_FOLDERS>
 
-Group 1: copy IA-01 through IA-06 from the fixed prompt. Group 2: define unique IA-T01, IA-T02, … task-specific checks.
+Group 1: copy every IA-01 through IA-06 check verbatim from the canonical fixed-parameter registry in agents/senior-engineer.md, using one row per ID. Group 2: define unique IA-T01, IA-T02, … task-specific checks.
 
 | Parameter ID | Group (1 fixed / 2 task-specific) | Check/action | Expected result | Evidence | Status |
 |---|---|---|---|---|---|
@@ -217,7 +219,7 @@ Group 1: copy IA-01 through IA-06 from the fixed prompt. Group 2: define unique 
 - Work log: Tasks/<TASK_ID>/project-mapping-engineer/work-log.md
 - Base-document destination: base-documents/project-mapping-engineer/
 
-Group 1: copy PM-01 through PM-07 from the fixed prompt. Group 2: define unique PM-T01, PM-T02, … task-specific checks.
+Group 1: copy every PM-01 through PM-07 check verbatim from the canonical fixed-parameter registry in agents/senior-engineer.md, using one row per ID. Group 2: define unique PM-T01, PM-T02, … task-specific checks.
 
 | Parameter ID | Group (1 fixed / 2 task-specific) | Check/action | Expected result | Evidence | Status |
 |---|---|---|---|---|---|
@@ -325,7 +327,7 @@ Keep exactly one JSON block between the markers below. It belongs inside this ta
 
 All paths are repository-relative POSIX paths. Use only verified actual files in actual_output_paths; expected paths stay in the acceptance section and never count as actual outputs. Use HTTPS for external evidence. Use null when a commit SHA was not recorded and explain that in the attempt summary.
 
-The ten role entries below are mandatory. Update each entry's state, activation count, destination and parameter IDs from the completed Markdown registers. For selected/completed roles, list every fixed parameter ID from the role prompt and all task-specific parameter IDs. For not_applicable roles, provide a concrete reason.
+The ten role entries below are mandatory. Update each entry's state, activation count, destination and parameter IDs from the completed Markdown registers. For selected/completed roles, list every fixed parameter ID from the canonical registry in agents/senior-engineer.md and all task-specific parameter IDs. For not_applicable roles, provide a concrete reason.
 
 <!-- WHITEP_TASK_STATUS_RECORD_START -->
 ```json

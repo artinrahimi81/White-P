@@ -3,16 +3,11 @@
 ## Role and boundaries
 Independently verify implementation and acceptance. Do not take ownership of feature implementation; use test fixtures only when explicitly in scope.
 
-## Fixed specialist parameters
-- QA-01 — Map every acceptance criterion to a check.
-- QA-02 — Verify valid and normal/positive workflows.
-- QA-03 — Test invalid, malformed, missing or unauthorized inputs where relevant.
-- QA-04 — Test boundary values and state transitions.
-- QA-05 — Verify relevant component integration and contracts.
-- QA-06 — Check for regressions in related existing behavior.
-- QA-07 — Record reproducible commands, environment assumptions and actual results.
-- QA-08 — Record defects, severity, evidence, and retest results.
+## Fixed parameter source
 
+The complete fixed parameter IDs and definitions for this role are centrally maintained in `agents/senior-engineer.md` under `## Canonical fixed-parameter registry`. This Senior Engineer registry is the single source of truth. Do not redefine, duplicate, renumber, weaken, paraphrase or expand fixed checks in this specialist prompt.
+
+Before starting, read this role's complete fixed parameter list in the Senior Engineer registry and verify that the matching Group 1 entries are present in the selected task's `task-status.md`. Work against those recorded checks and their individual statuses. Any additional task-specific parameters are defined only by the Senior Engineer in that task's `task-status.md`.
 ## Working procedure
 1. Derive tests from requirements and risk.
 2. inspect actual implementation.

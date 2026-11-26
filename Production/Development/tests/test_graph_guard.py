@@ -2,7 +2,7 @@ import json,sys,tempfile,unittest
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
-from tools.graph_guard import STATUS_END,STATUS_START,extract_status_record,valid_task_parameter_id,validate_graph
+from tools.graph_guard import FIXED_PARAMETER_IDS,STATUS_END,STATUS_START,extract_status_record,fixed_ids_from_prompt,fixed_parameter_definitions_from_prompt,valid_task_parameter_id,validate_graph,validate_parameter_registry
 
 def node(tid,deps=None,status="not_started"): return {"id":tid,"depends_on":deps or [],"status":status}
 def graph_fixture(): return {"tasks":[node("WP-INIT-001"),node("WP-INIT-002",["WP-INIT-001"])]}
@@ -18,6 +18,41 @@ def write_status(root,record):
  folder=root/"Production"/"Development"/"Tasks"/record["task_id"]; folder.mkdir(parents=True,exist_ok=True)
  raw=json.dumps(record,ensure_ascii=False,indent=2); fence=chr(96)*3
  (folder/"task-status.md").write_text("# Task Status\n\n"+STATUS_START+"\n"+fence+"json\n"+raw+"\n"+fence+"\n"+STATUS_END+"\n",encoding="utf-8")
+
+
+class CentralParameterRegistryTests(unittest.TestCase):
+ def write_prompt(self,root,sections):
+  p=root/"Production"/"Development"/"agents"/"senior-engineer.md"
+  p.parent.mkdir(parents=True,exist_ok=True)
+  p.write_text("\\n".join(sections),encoding="utf-8")
+  return p
+ def test_fixed_parameters_are_read_from_senior_prompt(self):
+  with tempfile.TemporaryDirectory() as tmp:
+   root=Path(tmp)
+   self.write_prompt(root,["## Canonical fixed-parameter registry","### execution-engineer","- EX-01 — Canonical check one.","- EX-02 — Canonical check two."])
+   role_dir=root/"Production"/"Development"/"agents"
+   (role_dir/"execution-engineer.md").write_text("## Fixed specialist parameters\\n- EX-99 — Obsolete local check.",encoding="utf-8")
+   self.assertEqual(fixed_ids_from_prompt(root,"execution-engineer"),["EX-01","EX-02"])
+   self.assertEqual(fixed_parameter_definitions_from_prompt(root,"execution-engineer"),[("EX-01","Canonical check one."),("EX-02","Canonical check two.")])
+ def test_missing_central_role_does_not_fall_back_to_specialist_prompt(self):
+  with tempfile.TemporaryDirectory() as tmp:
+   root=Path(tmp)
+   role_dir=root/"Production"/"Development"/"agents"
+   role_dir.mkdir(parents=True)
+   (role_dir/"execution-engineer.md").write_text("- EX-01 — Local-only definition.",encoding="utf-8")
+   self.assertEqual(fixed_ids_from_prompt(root,"execution-engineer"),[])
+ def test_registry_validator_requires_all_expected_role_parameters(self):
+  with tempfile.TemporaryDirectory() as tmp:
+   root=Path(tmp)
+   sections=["## Canonical fixed-parameter registry"]
+   for role,ids in FIXED_PARAMETER_IDS.items():
+    sections.append(f"### {role}")
+    sections.extend(f"- {pid} — Check for {pid}." for pid in ids)
+   self.write_prompt(root,sections)
+   self.assertEqual(validate_parameter_registry(root),[])
+   sections[sections.index("- EX-01 — Check for EX-01.")]="- EX-09 — Wrong ID."
+   self.write_prompt(root,sections)
+   self.assertIn("CANONICAL_PARAMETER_REGISTRY_MISMATCH",{finding.code for finding in validate_parameter_registry(root)})
 
 class GraphStructureTests(unittest.TestCase):
  def test_valid_graph(self): self.assertEqual(validate_graph(graph_fixture()),[])

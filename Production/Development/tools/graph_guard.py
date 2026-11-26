@@ -86,12 +86,37 @@ def valid_task_parameter_id(prefix:str,pid:Any)->bool:
  digits=pid[len(prefix+"-T"):]
  return len(digits) in {2,3} and digits.isascii() and digits.isdigit()
 
-def fixed_ids_from_prompt(root:Path,role:str)->list[str]:
- p=root/"Production"/"Development"/"agents"/f"{role}.md"
+def fixed_parameter_definitions_from_prompt(root:Path,role:str)->list[tuple[str,str]]:
+ """Read one role's canonical fixed checks from the Senior Engineer master prompt."""
+ p=root/"Production"/"Development"/"agents"/"senior-engineer.md"
  try: content=p.read_text(encoding="utf-8")
- except (OSError,UnicodeError): return FIXED_PARAMETER_IDS[role]
- ids=re.findall(r"^\s*-\s+([A-Z]{2,3}-\d{2})\s*[—:-]",content,re.M)
- return ids or FIXED_PARAMETER_IDS[role]
+ except (OSError,UnicodeError): return []
+ heading=re.search(rf"(?m)^###\s+{re.escape(role)}\s*$",content)
+ if heading is None: return []
+ remainder=content[heading.end():]
+ next_heading=re.search(r"(?m)^#{2,3}\s+",remainder)
+ section=remainder[:next_heading.start()] if next_heading else remainder
+ return re.findall(r"(?m)^\s*-\s+([A-Z]{2,3}-\d{2})\s+—\s+(.+?)\s*$",section)
+
+def fixed_ids_from_prompt(root:Path,role:str)->list[str]:
+ return [parameter_id for parameter_id,_ in fixed_parameter_definitions_from_prompt(root,role)]
+
+def validate_parameter_registry(root:Path)->list[Finding]:
+ """Require the central prompt to define the complete, unique fixed register for all roles."""
+ findings=[]
+ all_ids={}
+ for role,required_ids in FIXED_PARAMETER_IDS.items():
+  definitions=fixed_parameter_definitions_from_prompt(root,role)
+  actual_ids=[parameter_id for parameter_id,_ in definitions]
+  if actual_ids!=required_ids:
+   findings.append(Finding("ERROR","CANONICAL_PARAMETER_REGISTRY_MISMATCH",f"{role}: Senior Engineer registry IDs must be {required_ids}; found {actual_ids}."))
+  for parameter_id,check in definitions:
+   if not check.strip():
+    findings.append(Finding("ERROR","EMPTY_CANONICAL_PARAMETER_CHECK",f"{role}: {parameter_id} has an empty fixed check."))
+   if parameter_id in all_ids:
+    findings.append(Finding("ERROR","DUPLICATE_CANONICAL_PARAMETER_ID",f"{parameter_id} is defined for both {all_ids[parameter_id]} and {role}."))
+   all_ids[parameter_id]=role
+ return findings
 
 def validate_record(task,by_id,record,markdown,root,out):
  tid=task["id"]; ctx=f"{tid} task-status"
@@ -312,6 +337,7 @@ def validate_graph(graph:Any,repo_root:Path|None=None)->list[Finding]:
    if indegree[target]==0: q.append(target)
  if visited!=len(by_id): out.append(Finding("ERROR","DEPENDENCY_CYCLE","Dependency graph contains a cycle."))
  if repo_root is not None:
+  out.extend(validate_parameter_registry(repo_root.resolve()))
   for tid,node in by_id.items():
    status_path=repo_root/"Production"/"Development"/"Tasks"/tid/"task-status.md"
    if node.get("status") in {"in_progress","done","blocked","deferred_final"} or status_path.is_file():

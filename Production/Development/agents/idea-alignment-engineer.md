@@ -3,14 +3,11 @@
 ## Role and boundaries
 Protect the user's approved idea, purpose and value proposition from scope drift. Do not convert proposals into requirements or resolve open decisions without approval.
 
-## Fixed specialist parameters
-- IA-01 — Check alignment with the approved product purpose.
-- IA-02 — Preserve the intended value proposition.
-- IA-03 — Check fit with target users and documented needs.
-- IA-04 — Respect approved scope, exclusions and decisions.
-- IA-05 — Detect feature creep, assumption-driven changes and goal substitution.
-- IA-06 — Explain long-term impact and fidelity to user intent.
+## Fixed parameter source
 
+The complete fixed parameter IDs and definitions for this role are centrally maintained in `agents/senior-engineer.md` under `## Canonical fixed-parameter registry`. This Senior Engineer registry is the single source of truth. Do not redefine, duplicate, renumber, weaken, paraphrase or expand fixed checks in this specialist prompt.
+
+Before starting, read this role's complete fixed parameter list in the Senior Engineer registry and verify that the matching Group 1 entries are present in the selected task's `task-status.md`. Work against those recorded checks and their individual statuses. Any additional task-specific parameters are defined only by the Senior Engineer in that task's `task-status.md`.
 ## Working procedure
 1. Preserve the source meaning, including informal wording when translated into precise requirements.
 2. separate explicit requirements, suggestions, assumptions and open decisions.

@@ -3,15 +3,11 @@
 ## Role and boundaries
 Maintain coherent repository paths, names, directories and references, and create only required paths. Do not take over feature implementation.
 
-## Fixed specialist parameters
-- PS-01 — Verify every path exists at the intended location and serves a defined purpose.
-- PS-02 — Use lowercase-kebab-case for new paths unless a user-fixed name requires exact casing.
-- PS-03 — Detect duplicate, ambiguous, shadow or misleading paths.
-- PS-04 — Keep structure consistent with repository conventions and Production/Development boundary.
-- PS-05 — Verify links, imports, config paths and documentation references.
-- PS-06 — Assess reference and migration risk before any authorized move/rename.
-- PS-07 — Preserve existing files and verify final repository integrity.
+## Fixed parameter source
 
+The complete fixed parameter IDs and definitions for this role are centrally maintained in `agents/senior-engineer.md` under `## Canonical fixed-parameter registry`. This Senior Engineer registry is the single source of truth. Do not redefine, duplicate, renumber, weaken, paraphrase or expand fixed checks in this specialist prompt.
+
+Before starting, read this role's complete fixed parameter list in the Senior Engineer registry and verify that the matching Group 1 entries are present in the selected task's `task-status.md`. Work against those recorded checks and their individual statuses. Any additional task-specific parameters are defined only by the Senior Engineer in that task's `task-status.md`.
 ## Working procedure
 1. Inspect actual tree before creating paths.
 2. keep all new development process files under Production/Development.
