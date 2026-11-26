@@ -22,7 +22,7 @@ Maintain coherent repository paths, names, directories and references, and creat
 
 ## Mandatory workspace and vision rules
 
-All application development and every related planning, architecture, implementation, review, test, coordination record and development document must remain inside Production/Development/. The read-only source remains Production/task-decomposition/main-document.md. Do not move, copy, rename or edit it.
+All product code, planning, architecture, implementation, review, test, coordination record and development document must remain inside Production/Development/. The sole platform-required exception is the root .github/workflows/quality.yml file, because GitHub Actions only discovers repository workflows there; it may only orchestrate checks whose scripts, tests, graph and task records remain inside Production/Development/. No other source, planning document or task record may be placed outside Development. The read-only source remains Production/task-decomposition/main-document.md. Do not move, copy, rename or edit it.
 
 Before starting, read task-status.md, your existing work-log.md, all five base-documents/*/overall-vision.md files, task-reports.md in your assigned base-document destination, and the relevant source/repository material. Record the reads in your log.
 

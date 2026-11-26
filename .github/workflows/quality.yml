@@ -1,0 +1,31 @@
+name: White-P task graph quality gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  graph-and-tests:
+    name: Task graph and execution-record validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.13'
+      - name: Run graph-guard unit tests
+        run: python -m unittest discover -s Production/Development/tests -v
+      - name: Compile validation tools and tests
+        run: python -m compileall -q Production/Development/tools Production/Development/tests
+      - name: Validate dependency graph structure
+        run: python Production/Development/tools/graph_guard.py Production/Development/dependency-graph.json
+      - name: Validate task-status records and actual output evidence
+        run: python Production/Development/tools/graph_guard.py Production/Development/dependency-graph.json --repo-root .

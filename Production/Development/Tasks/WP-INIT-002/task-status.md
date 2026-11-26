@@ -274,3 +274,465 @@ No consultation was necessary. Source, prior task records, prompts and baselines
 - SE-T06 (commit and online main verification) is now passed.
 - Graph/catalog post-publication checks: 166 matching IDs; 27 domain baselines; 137 child tasks; 236 direct edges; exact three-key node schema; valid statuses/references; no self/duplicate edges or cycles; all 166 nodes topologically visited.
 - No force-push, branch creation, history rewrite or deletion was used.
+
+
+## Canonical execution-control record — schema 1.0
+
+This record migrates the previously accepted task history into the new execution-control schema. Earlier reports, role histories, decisions and status entries remain unchanged. The role mode explicitly records same-assistant sequential role-scoped passes; it does not claim autonomous independent agents or product runtime acceptance.
+
+<!-- WHITEP_TASK_STATUS_RECORD_START -->
+```json
+{
+  "schema_version": "1.0",
+  "task_id": "WP-INIT-002",
+  "graph_status": "done",
+  "prerequisite_reviews": [
+    {
+      "task_id": "WP-INIT-001",
+      "classification": "hard_dependency",
+      "validation_status": "validated",
+      "rationale": "WP-INIT-002 consumes the initial source map, catalog and dependency graph delivered by WP-INIT-001.",
+      "evidence": [
+        "Production/Development/Tasks/WP-INIT-001/task-status.md",
+        "Production/Development/task-catalog.md"
+      ]
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "ACC-001",
+      "description": "Preserve prior completion",
+      "status": "passed",
+      "evidence": [
+        "Production/Development/task-catalog.md",
+        "Production/Development/dependency-graph.json"
+      ],
+      "rationale": null
+    },
+    {
+      "id": "ACC-002",
+      "description": "Preserve original domains",
+      "status": "passed",
+      "evidence": [
+        "Production/Development/task-catalog.md",
+        "Production/Development/dependency-graph.json"
+      ],
+      "rationale": null
+    },
+    {
+      "id": "ACC-003",
+      "description": "Expand every domain",
+      "status": "passed",
+      "evidence": [
+        "Production/Development/task-catalog.md",
+        "Production/Development/dependency-graph.json"
+      ],
+      "rationale": null
+    },
+    {
+      "id": "ACC-004",
+      "description": "Detailed task contracts",
+      "status": "passed",
+      "evidence": [
+        "Production/Development/task-catalog.md",
+        "Production/Development/dependency-graph.json"
+      ],
+      "rationale": null
+    },
+    {
+      "id": "ACC-005",
+      "description": "Source traceability",
+      "status": "passed",
+      "evidence": [
+        "Production/Development/task-catalog.md",
+        "Production/Development/dependency-graph.json"
+      ],
+      "rationale": null
+    },
+    {
+      "id": "ACC-006",
+      "description": "Catalog/graph parity",
+      "status": "passed",
+      "evidence": [
+        "Production/Development/task-catalog.md",
+        "Production/Development/dependency-graph.json"
+      ],
+      "rationale": null
+    },
+    {
+      "id": "ACC-007",
+      "description": "Exact graph schema",
+      "status": "passed",
+      "evidence": [
+        "Production/Development/task-catalog.md",
+        "Production/Development/dependency-graph.json"
+      ],
+      "rationale": null
+    },
+    {
+      "id": "ACC-008",
+      "description": "Valid direct edges",
+      "status": "passed",
+      "evidence": [
+        "Production/Development/task-catalog.md",
+        "Production/Development/dependency-graph.json"
+      ],
+      "rationale": null
+    },
+    {
+      "id": "ACC-009",
+      "description": "DAG integrity",
+      "status": "passed",
+      "evidence": [
+        "Production/Development/task-catalog.md",
+        "Production/Development/dependency-graph.json"
+      ],
+      "rationale": null
+    },
+    {
+      "id": "ACC-010",
+      "description": "Valid status semantics",
+      "status": "passed",
+      "evidence": [
+        "Production/Development/task-catalog.md",
+        "Production/Development/dependency-graph.json"
+      ],
+      "rationale": null
+    },
+    {
+      "id": "ACC-011",
+      "description": "Preserve open decisions",
+      "status": "passed",
+      "evidence": [
+        "Production/Development/task-catalog.md",
+        "Production/Development/dependency-graph.json"
+      ],
+      "rationale": null
+    },
+    {
+      "id": "ACC-012",
+      "description": "Role history/baseline evidence",
+      "status": "passed",
+      "evidence": [
+        "Production/Development/task-catalog.md",
+        "Production/Development/dependency-graph.json"
+      ],
+      "rationale": null
+    },
+    {
+      "id": "ACC-013",
+      "description": "Repository scope",
+      "status": "passed",
+      "evidence": [
+        "Production/Development/task-catalog.md",
+        "Production/Development/dependency-graph.json"
+      ],
+      "rationale": null
+    },
+    {
+      "id": "ACC-014",
+      "description": "No feature implementation",
+      "status": "passed",
+      "evidence": [
+        "Production/Development/task-catalog.md",
+        "Production/Development/dependency-graph.json"
+      ],
+      "rationale": null
+    }
+  ],
+  "actual_output_paths": [
+    "Production/Development/task-catalog.md",
+    "Production/Development/dependency-graph.json",
+    "Production/Development/Tasks/WP-INIT-002/task-status.md",
+    "Production/Development/execution-work-breakdown/01-architecture-desktop-and-ai.md",
+    "Production/Development/execution-work-breakdown/02-compute-network-and-marketplace.md",
+    "Production/Development/execution-work-breakdown/03-orders-delivery-identity-and-settlement.md",
+    "Production/Development/execution-work-breakdown/04-blockchain-security-and-readiness.md"
+  ],
+  "evidence": [
+    "Production/Development/Tasks/WP-INIT-002/task-status.md",
+    "Production/Development/task-catalog.md",
+    "Production/Development/dependency-graph.json",
+    "Production/Development/tools/graph_guard.py",
+    "Production/Development/tests/test_graph_guard.py",
+    "Production/Development/Tasks/WP-INIT-002/senior-engineer/work-log.md",
+    "Production/Development/Tasks/WP-INIT-002/qa-testing-engineer/work-log.md",
+    "Production/Development/Tasks/WP-INIT-002/safety-engineer/work-log.md",
+    "Production/Development/Tasks/WP-INIT-002/project-structure-engineer/work-log.md",
+    "Production/Development/Tasks/WP-INIT-002/ux-interaction-engineer/work-log.md",
+    "Production/Development/Tasks/WP-INIT-002/feasibility-engineer/work-log.md",
+    "Production/Development/Tasks/WP-INIT-002/idea-alignment-engineer/work-log.md",
+    "Production/Development/Tasks/WP-INIT-002/project-mapping-engineer/work-log.md"
+  ],
+  "execution_history": [
+    {
+      "attempt_id": "WP-INIT-002-LEGACY-ACCEPTANCE-001",
+      "started_at": "2026-11-27T00:00:00Z",
+      "ended_at": "2026-11-27T00:00:00Z",
+      "result": "succeeded",
+      "summary": "Normalized the previously recorded final planning acceptance and static-validation evidence into the canonical record. This is a metadata migration of historical work, not a claim of product implementation or runtime tests.",
+      "changed_files": [
+        "Production/Development/task-catalog.md",
+        "Production/Development/dependency-graph.json",
+        "Production/Development/Tasks/WP-INIT-002/task-status.md"
+      ],
+      "commit_sha": null,
+      "commit_sha_note": "The legacy acceptance record did not bind this normalized attempt to one unique commit SHA; original version and acceptance commits remain preserved in Markdown history.",
+      "tests": [
+        {
+          "command": "Historical static acceptance checks recorded in this task-status.md",
+          "result": "passed",
+          "summary": "Original reports document source/task traceability, catalog/graph integrity, valid references and acyclic topological validation. Product runtime tests were outside these planning tasks."
+        }
+      ],
+      "failure_details": null,
+      "blocked_reason": null,
+      "reopened_reason": null,
+      "contract_changes": [],
+      "follow_up": "Use the graph guard and repository quality workflow for all subsequent task-status records."
+    }
+  ],
+  "execution_summary": {
+    "attempt_count": 1,
+    "failed_attempt_count": 0,
+    "tests_passed": [
+      "Historical static acceptance checks recorded in this task-status.md"
+    ],
+    "tests_failed": []
+  },
+  "agent_reviews": [
+    {
+      "role_id": "senior-engineer",
+      "state": "completed",
+      "normal_activation_count": 1,
+      "execution_mode": "same_assistant_sequential_role_scoped_pass",
+      "work_log_path": "Production/Development/Tasks/WP-INIT-002/senior-engineer/work-log.md",
+      "base_document_destination": "Production/Development/base-documents/project-mapping-engineer",
+      "fixed_parameter_ids": [
+        "SE-01",
+        "SE-02",
+        "SE-03",
+        "SE-04",
+        "SE-05",
+        "SE-06",
+        "SE-07"
+      ],
+      "task_specific_parameter_ids": [
+        "SE-T01",
+        "SE-T02",
+        "SE-T03",
+        "SE-T04",
+        "SE-T05",
+        "SE-T06"
+      ],
+      "not_applicable_reason": null
+    },
+    {
+      "role_id": "execution-engineer",
+      "state": "not_applicable",
+      "normal_activation_count": 0,
+      "execution_mode": "not_run",
+      "work_log_path": "Production/Development/Tasks/WP-INIT-002/execution-engineer/work-log.md",
+      "base_document_destination": "Production/Development/base-documents/project-structure-engineer",
+      "fixed_parameter_ids": [],
+      "task_specific_parameter_ids": [],
+      "not_applicable_reason": "The initialization task was limited to planning and decomposition; product implementation was explicitly out of scope."
+    },
+    {
+      "role_id": "qa-testing-engineer",
+      "state": "completed",
+      "normal_activation_count": 1,
+      "execution_mode": "same_assistant_sequential_role_scoped_pass",
+      "work_log_path": "Production/Development/Tasks/WP-INIT-002/qa-testing-engineer/work-log.md",
+      "base_document_destination": "Production/Development/base-documents/safety-engineer",
+      "fixed_parameter_ids": [
+        "QA-01",
+        "QA-02",
+        "QA-03",
+        "QA-04",
+        "QA-05",
+        "QA-06",
+        "QA-07",
+        "QA-08"
+      ],
+      "task_specific_parameter_ids": [
+        "QA-T01",
+        "QA-T02",
+        "QA-T03",
+        "QA-T04",
+        "QA-T05",
+        "QA-T06"
+      ],
+      "not_applicable_reason": null
+    },
+    {
+      "role_id": "safety-engineer",
+      "state": "completed",
+      "normal_activation_count": 1,
+      "execution_mode": "same_assistant_sequential_role_scoped_pass",
+      "work_log_path": "Production/Development/Tasks/WP-INIT-002/safety-engineer/work-log.md",
+      "base_document_destination": "Production/Development/base-documents/safety-engineer",
+      "fixed_parameter_ids": [
+        "SAF-01",
+        "SAF-02",
+        "SAF-03",
+        "SAF-04",
+        "SAF-05",
+        "SAF-06",
+        "SAF-07"
+      ],
+      "task_specific_parameter_ids": [
+        "SAF-T01",
+        "SAF-T02",
+        "SAF-T03",
+        "SAF-T04",
+        "SAF-T05"
+      ],
+      "not_applicable_reason": null
+    },
+    {
+      "role_id": "project-structure-engineer",
+      "state": "completed",
+      "normal_activation_count": 1,
+      "execution_mode": "same_assistant_sequential_role_scoped_pass",
+      "work_log_path": "Production/Development/Tasks/WP-INIT-002/project-structure-engineer/work-log.md",
+      "base_document_destination": "Production/Development/base-documents/project-structure-engineer",
+      "fixed_parameter_ids": [
+        "PS-01",
+        "PS-02",
+        "PS-03",
+        "PS-04",
+        "PS-05",
+        "PS-06",
+        "PS-07"
+      ],
+      "task_specific_parameter_ids": [
+        "PS-T01",
+        "PS-T02",
+        "PS-T03",
+        "PS-T04"
+      ],
+      "not_applicable_reason": null
+    },
+    {
+      "role_id": "design-engineer",
+      "state": "not_applicable",
+      "normal_activation_count": 0,
+      "execution_mode": "not_run",
+      "work_log_path": "Production/Development/Tasks/WP-INIT-002/design-engineer/work-log.md",
+      "base_document_destination": "Production/Development/base-documents/design-engineer",
+      "fixed_parameter_ids": [],
+      "task_specific_parameter_ids": [],
+      "not_applicable_reason": "No visual design deliverable was required for the initialization/decomposition task."
+    },
+    {
+      "role_id": "ux-interaction-engineer",
+      "state": "completed",
+      "normal_activation_count": 1,
+      "execution_mode": "same_assistant_sequential_role_scoped_pass",
+      "work_log_path": "Production/Development/Tasks/WP-INIT-002/ux-interaction-engineer/work-log.md",
+      "base_document_destination": "Production/Development/base-documents/ux-interaction-engineer",
+      "fixed_parameter_ids": [
+        "UX-01",
+        "UX-02",
+        "UX-03",
+        "UX-04",
+        "UX-05",
+        "UX-06",
+        "UX-07",
+        "UX-08"
+      ],
+      "task_specific_parameter_ids": [
+        "UX-T01",
+        "UX-T02",
+        "UX-T03",
+        "UX-T04"
+      ],
+      "not_applicable_reason": null
+    },
+    {
+      "role_id": "feasibility-engineer",
+      "state": "completed",
+      "normal_activation_count": 1,
+      "execution_mode": "same_assistant_sequential_role_scoped_pass",
+      "work_log_path": "Production/Development/Tasks/WP-INIT-002/feasibility-engineer/work-log.md",
+      "base_document_destination": "Production/Development/base-documents/project-structure-engineer",
+      "fixed_parameter_ids": [
+        "FE-01",
+        "FE-02",
+        "FE-03",
+        "FE-04",
+        "FE-05",
+        "FE-06",
+        "FE-07"
+      ],
+      "task_specific_parameter_ids": [
+        "FE-T01",
+        "FE-T02",
+        "FE-T03",
+        "FE-T04"
+      ],
+      "not_applicable_reason": null
+    },
+    {
+      "role_id": "idea-alignment-engineer",
+      "state": "completed",
+      "normal_activation_count": 1,
+      "execution_mode": "same_assistant_sequential_role_scoped_pass",
+      "work_log_path": "Production/Development/Tasks/WP-INIT-002/idea-alignment-engineer/work-log.md",
+      "base_document_destination": "Production/Development/base-documents/project-mapping-engineer",
+      "fixed_parameter_ids": [
+        "IA-01",
+        "IA-02",
+        "IA-03",
+        "IA-04",
+        "IA-05",
+        "IA-06"
+      ],
+      "task_specific_parameter_ids": [
+        "IA-T01",
+        "IA-T02",
+        "IA-T03",
+        "IA-T04"
+      ],
+      "not_applicable_reason": null
+    },
+    {
+      "role_id": "project-mapping-engineer",
+      "state": "completed",
+      "normal_activation_count": 1,
+      "execution_mode": "same_assistant_sequential_role_scoped_pass",
+      "work_log_path": "Production/Development/Tasks/WP-INIT-002/project-mapping-engineer/work-log.md",
+      "base_document_destination": "Production/Development/base-documents/project-mapping-engineer",
+      "fixed_parameter_ids": [
+        "PM-01",
+        "PM-02",
+        "PM-03",
+        "PM-04",
+        "PM-05",
+        "PM-06",
+        "PM-07"
+      ],
+      "task_specific_parameter_ids": [
+        "PM-T01",
+        "PM-T02",
+        "PM-T03",
+        "PM-T04",
+        "PM-T05"
+      ],
+      "not_applicable_reason": null
+    }
+  ],
+  "consultations": [],
+  "edge_change_log": [],
+  "contract_revalidation": {
+    "state": "not_required",
+    "affected_task_ids": [],
+    "reason": null,
+    "evidence": []
+  },
+  "blocked_reason": null,
+  "deferral": null
+}
+```
+<!-- WHITEP_TASK_STATUS_RECORD_END -->

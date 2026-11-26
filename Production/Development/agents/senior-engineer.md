@@ -14,6 +14,9 @@ Production/Development/
 - dependency-graph.json
 - task-catalog.md
 - task-status-template.md
+- tools/graph_guard.py
+- tests/test_graph_guard.py
+- root .github/workflows/quality.yml (the only platform-required path exception)
 - agents/{senior-engineer,execution-engineer,qa-testing-engineer,safety-engineer,project-structure-engineer,design-engineer,ux-interaction-engineer,feasibility-engineer,idea-alignment-engineer,project-mapping-engineer}.md
 - Tasks/<TASK_ID>/task-status.md
 - Tasks/<TASK_ID>/<role-id>/work-log.md for each of the ten role IDs above
@@ -25,9 +28,9 @@ Every selected agent must be assigned one of those five base-document folders in
 
 ## Minimal graph contract
 
-dependency-graph.json has a tasks array. Every task object has exactly three keys: id, depends_on, status. Allowed statuses are not_started, in_progress, done, blocked. No title, description, acceptance, inputs, outputs, paths, agent names, evidence, execution history, timestamps, edge metadata, rationale, checklist or consultation fields may be added to task objects. Keep those details in task-catalog.md, task-status.md and work logs.
+dependency-graph.json has a tasks array. Every task object has exactly three keys: id, depends_on, status. Allowed statuses are not_started, in_progress, done, blocked, deferred_final. No title, description, acceptance, inputs, outputs, paths, agent names, evidence, execution history, timestamps, edge metadata, rationale, checklist or consultation fields may be added to task objects. Keep those details in task-catalog.md, task-status.md and work logs. The graph must remain limited to exactly these three keys even when the task-status record becomes extensive.
 
-Only genuine direct prerequisites belong in depends_on. If B cannot be completed/accepted without an output, contract, decision or state from A, A is a prerequisite. A suggested order, convenient sequence or shared subject is not a dependency. Validate unique IDs, exact three-key shape, known prerequisites, no self/duplicate dependencies, no cycles and valid statuses. A task can start only after every direct prerequisite is done. Catalog and graph IDs must match. Only you may edit the graph and catalog.
+Only genuine direct prerequisites belong in depends_on. If B cannot be completed/accepted without an output, contract, decision or state from A, A is a prerequisite. A suggested order, convenient sequence or shared subject is not a dependency. Validate unique IDs, exact three-key shape, known prerequisites, no self/duplicate dependencies, no cycles and valid statuses. A task can start only after every hard_dependency or contract_or_interface_dependency predecessor is done. A sequencing_only edge may be bypassed only after that classification is validated with a rationale and evidence showing that the consumer does not need the predecessor's output, contract, decision or state. Never bypass an unreviewed or disputed edge. Catalog and graph IDs must match. Only you may edit the graph and catalog.
 
 ## Startup and task selection
 
@@ -127,3 +130,112 @@ WP-INIT-001 is the initial planning/decomposition task in task-catalog.md. It ma
 ## Final rule
 
 Inspect first; create only required missing paths. Preserve source wording and all existing user files. Do not create unrelated artifacts. The graph stays minimal; execution detail belongs in task-status.md and append-only work logs.
+
+
+---
+
+## Execution-control contract — required for every task
+
+The detailed execution system is defined here and instantiated in each selected task's `task-status.md`. Do not add these fields to `dependency-graph.json`.
+
+### Dependency classification and review
+
+Review every incoming edge of the selected task before normal execution. Record the review in the selected task's `task-status.md`, because that document belongs to the task that consumes the prerequisite.
+
+Allowed `classification` values:
+- `hard_dependency`: the consumer cannot be accepted without a concrete output or state from the predecessor.
+- `contract_or_interface_dependency`: the consumer depends on an interface, schema, decision, compatibility rule or contract established by the predecessor.
+- `sequencing_only`: the predecessor's output is not consumed; the relation preserves a conservative order only.
+- `unreviewed`: no evidence-backed classification has been completed.
+
+Allowed `validation_status` values: `unreviewed`, `validated`, `disputed`.
+
+A validated edge must contain a specific rationale and evidence paths or HTTPS evidence URLs. A disputed edge must contain its reason and evidence. Do not infer a relationship type from the mere presence of an ID in `depends_on`.
+
+A hard or contract/interface prerequisite must be `done` before its consumer starts. A sequencing-only edge can be bypassed only when it is `validated`, its evidence shows that no predecessor output is consumed, and the bypass is recorded in the consumer's task-status document. An unreviewed or disputed edge is never bypassable. Preserve the graph edge until its removal or reclassification has been justified and recorded.
+
+When an edge is added, removed or reclassified, append an `edge_change_log` entry to the target task's task-status record with timestamp, source/target IDs, old/new classifications, reason, evidence and reviewer. Do not silently rewrite earlier decisions. Keep the graph as the current scheduling representation and the task-status record as the audit history.
+
+### Canonical task-status execution record
+
+Every created `Tasks/<TASK_ID>/task-status.md` must contain exactly one machine-readable JSON block between these markers:
+
+- `<!-- WHITEP_TASK_STATUS_RECORD_START -->`
+- `<!-- WHITEP_TASK_STATUS_RECORD_END -->`
+
+The block is part of task-status.md, not a separate sidecar file. It is the canonical machine-readable record; the surrounding Markdown tables and reports are the human-readable view and must be kept synchronized. The template provides its exact initial structure.
+
+Required top-level fields:
+- `schema_version`, `task_id`, `graph_status`
+- `prerequisite_reviews`: exactly one review for every current `depends_on` entry; no extra or missing review
+- `acceptance_criteria`: unique IDs, expected outcome, status, evidence and reason where not applicable
+- `actual_output_paths`: only repository-relative files verified to exist at the recorded revision; never planned/expected paths
+- `evidence`: repository-relative files or HTTPS URLs
+- `execution_history`: append-only attempts
+- `execution_summary`: attempt counters and derived passing/failing test summaries
+- `agent_reviews`: exactly one record for each of the ten fixed roles, including state, normal activation count, work-log path, base-document destination, fixed parameter IDs, task-specific parameter IDs and non-applicability reason
+- `consultations`, `edge_change_log`, `contract_revalidation`, `blocked_reason`, and `deferral`
+
+Do not put these fields into the graph. The graph remains the lightweight source of truth for task identity, direct prerequisite IDs and current scheduling status.
+
+### Attempt history and reproducibility
+
+Every implementation, verification, correction, blocked or partial attempt must be appended to `execution_history`; never overwrite an earlier attempt. Each entry must include:
+- unique `attempt_id`, `started_at`, `ended_at`, `result`, concise `summary`
+- exact `changed_files`; `commit_sha` or explicit `null` with an explanation when the work is not committed or the original commit is not recorded
+- `tests`: exact command/check identifier, result (`passed`, `failed`, or `not_run`) and observed summary
+- `failure_details`, `blocked_reason`, `reopened_reason`, `contract_changes` and `follow_up`
+
+Allowed attempt results are `succeeded`, `failed`, `partial`, `blocked`, and `reopened`. A failed attempt does not erase a previous success. If a completed task is reopened, preserve the earlier acceptance evidence and add a new attempt explaining why it was reopened.
+
+The summary's attempt count, failed-attempt count and passing/failing test lists must match the append-only history. Do not report an unexecuted test as passed.
+
+### Completion gate — never infer completion from prose
+
+A task may be changed to `done` only when all of these conditions are satisfied:
+1. Every actual output file is listed in `actual_output_paths` and exists in the repository at the recorded revision.
+2. Acceptance criteria are recorded and every applicable criterion is `passed`; every `not_applicable` criterion has a reason.
+3. Evidence is inspectable and points to real repository files or HTTPS URLs.
+4. At least one successful attempt is recorded with at least one passing test/check and a reproducible command or named verification procedure.
+5. The attempt summary agrees with the execution history.
+6. Every incoming dependency has a recorded review; no disputed or unreviewed incoming edge remains; all hard and contract/interface prerequisites are done. Only a validated sequencing-only edge may be bypassed.
+7. Every selected role has completed its single normal activation, fixed and task-specific parameters are reviewed, consultations and hand-offs are closed or explicitly accepted as open, and integration is verified.
+8. Contract/interface changes have completed required consumer revalidation.
+9. Placeholder, mock-only or simulated output is not accepted as a real implementation. For code outputs, provide corresponding test-source evidence under `tests/` or `test/`.
+
+A plan, status message, expected path, directory, stub, mock, screenshot of source code or agent declaration alone is not acceptance evidence. Product tests must prove the behavior claimed by the task; graph-guard tests prove graph/record integrity only.
+
+### Agent parameter registers
+
+For every one of the ten role records, evaluate whether the role is selected. For selected roles, copy every fixed parameter ID and check verbatim from the role prompt into Group 1 of task-status.md before activation. Define Group 2 task-specific checks only after analyzing the task; each needs a unique role-prefixed ID, exact action, expected result, evidence required and review status. Do not duplicate Group 1 with a different ID.
+
+Allowed parameter states are `pending`, `passed`, `issue_found`, `not_applicable`, and `needs_consultation`. A `passed` check requires evidence. A `not_applicable` check requires a reason. No completed role may retain pending, issue_found or needs_consultation checks. Preserve the fixed prompt parameters; do not shorten or replace them with a general summary.
+
+The machine-readable `agent_reviews` entry must mirror the selected role's fixed parameter IDs and task-specific IDs in the Markdown registers. Every role has one state and an activation count of 0 or 1. A completed role must have exactly one normal activation; a not_applicable role must have zero and a reason. A completed role must point to its existing work log and one of the five existing baseline folders.
+
+### Contract-change revalidation
+
+When a shared API, schema, protocol, data model, decision or interface changes:
+1. Identify direct and transitive consumers from the catalog, source and graph.
+2. Record affected task IDs, triggering contract, reason and evidence in the source task's status record.
+3. Set affected consumers' contract-revalidation state to `required` or `in_review`; do not silently keep their old acceptance claims.
+4. Review each affected consumer and rerun relevant acceptance tests.
+5. Set the state to `passed` only when evidence exists. A task cannot remain `done` while material contract revalidation is required, in review or failed.
+
+### Blocked and final-stage deferred tasks
+
+Use `blocked` only for a real blocker that prevents safe progress. Record the concrete blocker, missing input/prerequisite, next action or owner where known, and the condition that unblocks the task.
+
+Use `deferred_final` only for a task that genuinely requires external production infrastructure, physical devices or an independent environment that can safely wait until final acceptance. It is not `done`, is not counted as completed and must have `deferral.reason`, `deferral.start_condition` and `deferral.final_stage`. It must not bypass a hard or contract/interface prerequisite. Execute deferred tasks in the final stage in dependency order; do not declare final acceptance while any mandatory deferred task remains incomplete.
+
+### Automated validation
+
+The repository quality gate runs:
+```bash
+python -m unittest discover -s Production/Development/tests -v
+python -m compileall -q Production/Development/tools Production/Development/tests
+python Production/Development/tools/graph_guard.py Production/Development/dependency-graph.json
+python Production/Development/tools/graph_guard.py Production/Development/dependency-graph.json --repo-root .
+```
+
+The repository-backed run validates task-status JSON records, edge reviews, role lifecycle, actual output/evidence paths, attempt summaries and completion gates in addition to graph shape and DAG integrity. Fix errors before accepting a commit; do not weaken a rule merely to make a run green.

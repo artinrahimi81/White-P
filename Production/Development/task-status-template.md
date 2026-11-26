@@ -275,3 +275,100 @@ Only the Senior Engineer changes dependency-graph.json. Mark a task done only af
 | <TIME> | <ROLE_ID> | <SECTION> | <APPEND-ONLY SUMMARY> | <REASON> |
 
 Preserve earlier records. Correct a previous statement by appending a dated clarification; do not silently erase history.
+
+
+---
+
+## 11. Dependency-edge review register
+
+Every direct incoming dependency must have exactly one review in the canonical record below. Use the target task's status document as the review owner.
+
+| Prerequisite task ID | Classification | Validation status | Concrete reason | Evidence | Scheduling effect |
+|---|---|---|---|---|---|
+| <TASK_ID> | <hard_dependency / contract_or_interface_dependency / sequencing_only / unreviewed> | <unreviewed / validated / disputed> | <WHY THIS RELATION EXISTS> | <PATHS_OR_HTTPS_URLS> | <must be done / validated sequencing-only bypass / blocked pending review> |
+
+A validated edge requires a rationale and evidence. A sequencing-only edge can be bypassed only after validation. Record every added, removed or reclassified edge in the append-only edge-change log in the canonical record.
+
+## 12. Task-level execution attempt ledger
+
+Append one row for every attempt, including failures, partial work, blocked work, corrections and reopenings. Do not rewrite or delete earlier attempts.
+
+| Attempt ID | Start | End | Result | Summary | Changed files | Commit SHA or null + explanation | Commands/checks and observed result | Failure details | Blocker/reopen reason | Contract changes | Follow-up |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| <TASK_ID>-A001 | <ISO-8601> | <ISO-8601> | <succeeded/failed/partial/blocked/reopened> | <WHAT HAPPENED> | <EXACT PATHS> | <40-CHAR SHA OR NULL WITH REASON> | <EXACT COMMAND/CHECK, PASS/FAIL/NOT RUN> | <DETAIL OR NONE> | <DETAIL OR NONE> | <AFFECTED CONTRACTS OR NONE> | <NEXT ACTION OR NONE> |
+
+The execution summary must exactly match the history: attempt_count, failed_attempt_count, tests_passed and tests_failed. A task may be done only with a succeeded attempt and at least one passing, recorded verification.
+
+## 13. Contract revalidation and external deferral
+
+**Contract revalidation**
+- State: <not_required | required | in_review | passed | failed>
+- Triggering contract/interface changes: <LIST_OR_NONE>
+- Affected direct/transitive task IDs: <LIST_OR_NONE>
+- Review/test evidence: <PATHS_OR_URLS>
+- Reason and remaining work: <DETAIL_OR_NONE>
+
+**Blocked status**
+- Concrete blocker: <DETAIL_OR_NONE>
+- Missing prerequisite/input: <DETAIL_OR_NONE>
+- Owner or next action: <DETAIL_OR_NONE>
+- Unblocking condition: <DETAIL_OR_NONE>
+
+**Final-stage deferral — fill only when graph status is deferred_final**
+- Reason: <WHY_EXTERNAL_ACCEPTANCE_CAN_WAIT>
+- Start condition: <ALL_REQUIRED_PRECONDITIONS>
+- Final stage: <WHEN_IT_MUST_RUN_AND_WHAT_IT_BLOCKS>
+
+## 14. Canonical machine-readable task-status record
+
+Keep exactly one JSON block between the markers below. It belongs inside this task-status.md; do not create a separate metadata file. The block is the machine-readable source for the graph guard. Keep it synchronized with the human-readable sections above.
+
+All paths are repository-relative POSIX paths. Use only verified actual files in actual_output_paths; expected paths stay in the acceptance section and never count as actual outputs. Use HTTPS for external evidence. Use null when a commit SHA was not recorded and explain that in the attempt summary.
+
+The ten role entries below are mandatory. Update each entry's state, activation count, destination and parameter IDs from the completed Markdown registers. For selected/completed roles, list every fixed parameter ID from the role prompt and all task-specific parameter IDs. For not_applicable roles, provide a concrete reason.
+
+<!-- WHITEP_TASK_STATUS_RECORD_START -->
+```json
+{
+  "schema_version": "1.0",
+  "task_id": "<TASK_ID>",
+  "graph_status": "<not_started|in_progress|done|blocked|deferred_final>",
+  "prerequisite_reviews": [],
+  "acceptance_criteria": [],
+  "actual_output_paths": [],
+  "evidence": [],
+  "execution_history": [],
+  "execution_summary": {
+    "attempt_count": 0,
+    "failed_attempt_count": 0,
+    "tests_passed": [],
+    "tests_failed": []
+  },
+  "agent_reviews": [
+    {"role_id":"senior-engineer","state":"not_scheduled","normal_activation_count":0,"execution_mode":"not_run","work_log_path":"Production/Development/Tasks/<TASK_ID>/senior-engineer/work-log.md","base_document_destination":"Production/Development/base-documents/project-mapping-engineer","fixed_parameter_ids":[],"task_specific_parameter_ids":[],"not_applicable_reason":null},
+    {"role_id":"execution-engineer","state":"not_scheduled","normal_activation_count":0,"execution_mode":"not_run","work_log_path":"Production/Development/Tasks/<TASK_ID>/execution-engineer/work-log.md","base_document_destination":"Production/Development/base-documents/project-structure-engineer","fixed_parameter_ids":[],"task_specific_parameter_ids":[],"not_applicable_reason":null},
+    {"role_id":"qa-testing-engineer","state":"not_scheduled","normal_activation_count":0,"execution_mode":"not_run","work_log_path":"Production/Development/Tasks/<TASK_ID>/qa-testing-engineer/work-log.md","base_document_destination":"Production/Development/base-documents/safety-engineer","fixed_parameter_ids":[],"task_specific_parameter_ids":[],"not_applicable_reason":null},
+    {"role_id":"safety-engineer","state":"not_scheduled","normal_activation_count":0,"execution_mode":"not_run","work_log_path":"Production/Development/Tasks/<TASK_ID>/safety-engineer/work-log.md","base_document_destination":"Production/Development/base-documents/safety-engineer","fixed_parameter_ids":[],"task_specific_parameter_ids":[],"not_applicable_reason":null},
+    {"role_id":"project-structure-engineer","state":"not_scheduled","normal_activation_count":0,"execution_mode":"not_run","work_log_path":"Production/Development/Tasks/<TASK_ID>/project-structure-engineer/work-log.md","base_document_destination":"Production/Development/base-documents/project-structure-engineer","fixed_parameter_ids":[],"task_specific_parameter_ids":[],"not_applicable_reason":null},
+    {"role_id":"design-engineer","state":"not_scheduled","normal_activation_count":0,"execution_mode":"not_run","work_log_path":"Production/Development/Tasks/<TASK_ID>/design-engineer/work-log.md","base_document_destination":"Production/Development/base-documents/design-engineer","fixed_parameter_ids":[],"task_specific_parameter_ids":[],"not_applicable_reason":null},
+    {"role_id":"ux-interaction-engineer","state":"not_scheduled","normal_activation_count":0,"execution_mode":"not_run","work_log_path":"Production/Development/Tasks/<TASK_ID>/ux-interaction-engineer/work-log.md","base_document_destination":"Production/Development/base-documents/ux-interaction-engineer","fixed_parameter_ids":[],"task_specific_parameter_ids":[],"not_applicable_reason":null},
+    {"role_id":"feasibility-engineer","state":"not_scheduled","normal_activation_count":0,"execution_mode":"not_run","work_log_path":"Production/Development/Tasks/<TASK_ID>/feasibility-engineer/work-log.md","base_document_destination":"Production/Development/base-documents/project-structure-engineer","fixed_parameter_ids":[],"task_specific_parameter_ids":[],"not_applicable_reason":null},
+    {"role_id":"idea-alignment-engineer","state":"not_scheduled","normal_activation_count":0,"execution_mode":"not_run","work_log_path":"Production/Development/Tasks/<TASK_ID>/idea-alignment-engineer/work-log.md","base_document_destination":"Production/Development/base-documents/project-mapping-engineer","fixed_parameter_ids":[],"task_specific_parameter_ids":[],"not_applicable_reason":null},
+    {"role_id":"project-mapping-engineer","state":"not_scheduled","normal_activation_count":0,"execution_mode":"not_run","work_log_path":"Production/Development/Tasks/<TASK_ID>/project-mapping-engineer/work-log.md","base_document_destination":"Production/Development/base-documents/project-mapping-engineer","fixed_parameter_ids":[],"task_specific_parameter_ids":[],"not_applicable_reason":null}
+  ],
+  "consultations": [],
+  "edge_change_log": [],
+  "contract_revalidation": {"state":"not_required","affected_task_ids":[],"reason":null,"evidence":[]},
+  "blocked_reason": null,
+  "deferral": null
+}
+```
+<!-- WHITEP_TASK_STATUS_RECORD_END -->
+
+## 15. Completion and preservation rules
+
+- The canonical record and Markdown tables must agree; the graph guard rejects mismatched graph/task status, missing incoming-edge reviews, missing role records, invalid activation counts, incomplete acceptance, missing outputs/evidence, inconsistent attempt summaries and invalid deferral metadata.
+- Completed tasks need actual existing output files, passing acceptance criteria, reviewable evidence, a succeeded attempt, and at least one recorded passing verification.
+- A completed role must have exactly one normal activation and an existing work log; a not_applicable role must have zero activations and an explicit reason. Do not describe sequential same-assistant passes as independent agents.
+- For code outputs, evidence must include test source under tests/ or test/. Known TODO, NotImplemented, mock, placeholder and simulated-response markers are rejected from code files claimed as actual outputs.
+- Keep task-status history append-only. Correct earlier information by adding a dated clarification or a new attempt; never silently erase it.
