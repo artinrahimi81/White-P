@@ -22,3 +22,16 @@
 - The earlier four-child minimum was a non-source-derived planning heuristic and risked unnecessary fragmentation. The catalog acceptance floor is clarified to three independently verifiable children per domain.
 - Both three-child domains have distinct outputs and acceptance: history event schema, authorized persistence/retrieval and evidence-linked detail; feedback capture, No Feedback timing/policy and dispute/feedback separation tests.
 - This clarification does not alter IDs, task count, dependency edges, statuses or scope. WP-INIT-002 remains accepted; graph remains 166 nodes/236 edges.
+
+
+## WP-INIT-002 — Final GitHub verification record
+
+- Date: 2026-11-27.
+- Verified account/repository/branch: artinrahimi81 / artinrahimi81/White-P / main.
+- Starting base: 60242c01a0e74d3e41c667257e51cc81f82d0db7 (v 0.0.0).
+- Expansion commit: c8f11436df1d60a350df2dbca80eb9e8237369e7 (v 0.0.1).
+- Append-only acceptance/path correction: d95d272be867fe18b8419dcb29446e57b003a187 (v 0.0.2).
+- Final online main head was fetched and matched d95d272be867fe18b8419dcb29446e57b003a187; it is a direct child of the expansion commit.
+- GitHub compare from original base reports 2 commits ahead, 0 behind, and exactly 21 changed files. All changed files are under Production/Development; no deletions.
+- Post-publication catalog/graph validation passed: 166 IDs, 27 domain baselines, 137 children, 236 edges, exact node schema, valid references/statuses, acyclic, 166/166 topologically visited.
+- ACC-012, ACC-013 and SE-T06 are verified and closed. No force push, branch creation, history rewrite or prior commit removal occurred.
