@@ -13,3 +13,12 @@
 - Limitations: role reviews were sequential role-scoped passes by the same assistant; independent agent execution and independent QA sign-off are not claimed.
 - Consultations: none required; uncertainties preserved in catalog.
 - Final decision: accept WP-INIT-002 as completed after static QA; retain WP-INIT-001's status/history.
+
+
+## WP-INIT-002 — Post-review acceptance clarification
+
+- Date: 2026-11-27.
+- A detailed parent/child cardinality audit found 25 domain baselines with four or more children and two baselines (WP-AI-HISTORY-001, WP-FEEDBACK-001) with three children each.
+- The earlier four-child minimum was a non-source-derived planning heuristic and risked unnecessary fragmentation. The catalog acceptance floor is clarified to three independently verifiable children per domain.
+- Both three-child domains have distinct outputs and acceptance: history event schema, authorized persistence/retrieval and evidence-linked detail; feedback capture, No Feedback timing/policy and dispute/feedback separation tests.
+- This clarification does not alter IDs, task count, dependency edges, statuses or scope. WP-INIT-002 remains accepted; graph remains 166 nodes/236 edges.

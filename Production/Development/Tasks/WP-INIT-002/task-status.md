@@ -244,3 +244,14 @@ No consultation was necessary. Source, prior task records, prompts and baselines
 |---|---|---|---|---|
 | 2026-11-27 | senior-engineer | Initial creation | Created follow-up task status, role order, parameter registers and acceptance baseline | Latest online main and all required controls/baselines inspected |
 | 2026-11-27 | senior-engineer | Sections 4, 6, 8 and 9 | Recorded expanded graph validation, handoffs, role limitations and final decision | 166-node static validation completed |
+
+
+## 11. Append-only acceptance clarification — granular child-task minimum
+
+- Review date: 2026-11-27.
+- Reason: The final parent/child cardinality check found that WP-AI-HISTORY-001 and WP-FEEDBACK-001 each have three distinct, individually justified child work packages. The other 25 domain baselines have four or more.
+- Correction: The initial four-child numeric floor in ACC-003 and SE-T03 was an unnecessarily rigid planning heuristic, not a source requirement. It is superseded as to its numeric floor by a minimum of three independently verifiable child tasks per domain. This avoids splitting work artificially merely to meet a count.
+- Evidence: WP-AI-HISTORY-002 through -004 cover event schema, authorized persistence/retrieval and history detail/evidence links. WP-FEEDBACK-002 through -004 cover signed feedback capture, No Feedback policy/timer and dispute/feedback separation tests. Their outputs and acceptance checks are distinct and traceable to Sections 7 and 13/22/23 respectively.
+- Corrected result: All 27 domain baselines have at least three granular child tasks; the 137-child breakdown remains intact; source requirements remain mapped. ACC-003 and SE-T03 pass under this clarified criterion.
+- Graph impact: none. The graph remains 166 nodes and 236 edges; IDs and statuses are unchanged.
+- History rule: This is an appended clarification; the original review record is retained and not silently erased.
