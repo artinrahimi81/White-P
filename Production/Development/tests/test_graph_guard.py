@@ -24,14 +24,14 @@ class CentralParameterRegistryTests(unittest.TestCase):
  def write_prompt(self,root,sections):
   p=root/"Production"/"Development"/"agents"/"senior-engineer.md"
   p.parent.mkdir(parents=True,exist_ok=True)
-  p.write_text("\\n".join(sections),encoding="utf-8")
+  p.write_text("\n".join(sections),encoding="utf-8")
   return p
  def test_fixed_parameters_are_read_from_senior_prompt(self):
   with tempfile.TemporaryDirectory() as tmp:
    root=Path(tmp)
    self.write_prompt(root,["## Canonical fixed-parameter registry","### execution-engineer","- EX-01 — Canonical check one.","- EX-02 — Canonical check two."])
    role_dir=root/"Production"/"Development"/"agents"
-   (role_dir/"execution-engineer.md").write_text("## Fixed specialist parameters\\n- EX-99 — Obsolete local check.",encoding="utf-8")
+   (role_dir/"execution-engineer.md").write_text("## Fixed specialist parameters\n- EX-99 — Obsolete local check.",encoding="utf-8")
    self.assertEqual(fixed_ids_from_prompt(root,"execution-engineer"),["EX-01","EX-02"])
    self.assertEqual(fixed_parameter_definitions_from_prompt(root,"execution-engineer"),[("EX-01","Canonical check one."),("EX-02","Canonical check two.")])
  def test_missing_central_role_does_not_fall_back_to_specialist_prompt(self):
