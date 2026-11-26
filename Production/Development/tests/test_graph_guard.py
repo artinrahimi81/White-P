@@ -2,7 +2,7 @@ import json,sys,tempfile,unittest
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
-from tools.graph_guard import STATUS_END,STATUS_START,extract_status_record,validate_graph
+from tools.graph_guard import STATUS_END,STATUS_START,extract_status_record,valid_task_parameter_id,validate_graph
 
 def node(tid,deps=None,status="not_started"): return {"id":tid,"depends_on":deps or [],"status":status}
 def graph_fixture(): return {"tasks":[node("WP-INIT-001"),node("WP-INIT-002",["WP-INIT-001"])]}
@@ -44,6 +44,16 @@ class GraphStructureTests(unittest.TestCase):
   self.assertEqual(validate_graph({"tasks":[node("WP-INIT-001",status="deferred_final")]}),[])
  def test_invalid_status(self):
   self.assertIn("INVALID_TASK_STATUS",{x.code for x in validate_graph({"tasks":[node("WP-INIT-001",status="almost_done")]})})
+
+class TaskSpecificParameterIdTests(unittest.TestCase):
+ def test_valid_two_digit_parameter(self): self.assertTrue(valid_task_parameter_id("SE","SE-T01"))
+ def test_valid_three_digit_parameter(self): self.assertTrue(valid_task_parameter_id("QA","QA-T123"))
+ def test_wrong_role_prefix(self): self.assertFalse(valid_task_parameter_id("SE","QA-T01"))
+ def test_missing_or_invalid_numeric_suffix(self):
+  self.assertFalse(valid_task_parameter_id("SE","SE-T"))
+  self.assertFalse(valid_task_parameter_id("SE","SE-T1"))
+  self.assertFalse(valid_task_parameter_id("SE","SE-T1234"))
+  self.assertFalse(valid_task_parameter_id("SE","SE-TAA"))
 
 class TaskStatusTests(unittest.TestCase):
  def test_extract_record(self):

@@ -81,6 +81,11 @@ def evidence_item(item:Any,root:Path,out:list[Finding],ctx:str):
  if problem: out.append(Finding("ERROR","UNSAFE_EVIDENCE_PATH",f"{ctx}: {item!r}: {problem}.")); return
  if path is None or not path.is_file(): out.append(Finding("ERROR","MISSING_EVIDENCE_FILE",f"{ctx}: evidence file not found: {item!r}."))
 
+def valid_task_parameter_id(prefix:str,pid:Any)->bool:
+ if not isinstance(pid,str) or not pid.startswith(prefix+"-T"): return False
+ digits=pid[len(prefix+"-T"):]
+ return len(digits) in {2,3} and digits.isascii() and digits.isdigit()
+
 def fixed_ids_from_prompt(root:Path,role:str)->list[str]:
  p=root/"Production"/"Development"/"agents"/f"{role}.md"
  try: content=p.read_text(encoding="utf-8")
@@ -235,7 +240,7 @@ def validate_record(task,by_id,record,markdown,root,out):
    else:
     prefix=expected[0].split("-")[0]
     for pid in task_ids:
-     if not isinstance(pid,str) or not re.fullmatch(rf"{re.escape(prefix)}-T\d{2,3}",pid) or not re.search(rf"\b{re.escape(pid)}\b",markdown):
+     if not valid_task_parameter_id(prefix,pid) or pid not in markdown:
       out.append(Finding("ERROR","TASK_PARAMETERS_NOT_COPIED",f"{ctx}: {role} task-specific ID {pid!r} is invalid or missing."))
    log,problem=safe_repo_file(root,agent.get("work_log_path"))
    if problem or log is None or not log.is_file(): out.append(Finding("ERROR","MISSING_AGENT_WORK_LOG",f"{ctx}: {role} work log is missing or unsafe."))
