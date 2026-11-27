@@ -81,7 +81,22 @@ Normal activation_count is 0 before starting and exactly 1 after the role begins
 
 | Parameter ID | Fixed check (copied from prompt) | Expected result | Evidence | Status |
 |---|---|---|---|---|
-| SE-01 … SE-16 | <COPY_EXACT_CHECK_ONE_ROW_PER_ID> | <EXPECTED> | <EVIDENCE> | <STATUS> |
+| SE-01 | Read graph, catalog, relevant complete source, existing task records, all role prompts and five overall-vision files. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| SE-02 | Select or resume only a task whose genuine direct prerequisites are satisfied. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| SE-03 | Keep graph nodes to exactly three keys and validate true direct acyclic dependencies. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| SE-04 | Define complete scope, exclusions, outputs, interfaces and verifiable acceptance criteria. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| SE-05 | Choose relevant roles and their order, task-specific parameters and baseline destinations before activation. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| SE-06 | Enforce one normal activation per role and bounded consultation-only responses. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| SE-07 | Verify real outputs, evidence, tests, integration and final acceptance. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| SE-08 | Capture the exact read-only source version, current main commit, source blob, graph blob and catalog blob before creating or resuming a task record. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| SE-09 | Derive a deterministic topological order and conservative execution waves from the complete current graph. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| SE-10 | Record each selected task's derived topological position and wave in task-status.md without adding scheduling fields to graph nodes. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| SE-11 | Distinguish wave readiness from concurrency authorization; preserve White-P's one-active-task and sequential-role rules by default. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| SE-12 | Version each approved requirement or shared-contract change and record exact changed requirement IDs, before/after versions, reason and evidence. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| SE-13 | Trace each change to directly and transitively affected tasks, interfaces, consumers and acceptance evidence. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| SE-14 | Reconcile every affected historical task individually while preserving its baseline status and previous evidence. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| SE-15 | Require evidence-backed contract and acceptance revalidation before relying on affected historical completion; document any justified status transition. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| SE-16 | Derive impact counts and status summaries from canonical change/reconciliation records instead of manually maintained duplicate totals. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
 
 **Group 2 — task-specific parameters:** Define only checks needed for this task; do not duplicate Group 1.
 
@@ -103,7 +118,13 @@ Group 2: define unique EX-T01, EX-T02, … task-specific checks without duplicat
 
 | Parameter ID | Group (1 fixed / 2 task-specific) | Check/action | Expected result | Evidence | Status |
 |---|---|---|---|---|---|
-| <EX-01 or EX-T01> | <1 or 2> | <CHECK> | <EXPECTED> | <EVIDENCE> | <STATUS> |
+| EX-01 | 1 | Conform to approved requirements and the exact task scope. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| EX-02 | 1 | Verify implementation logic and relevant state transitions. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| EX-03 | 1 | Create complete real outputs; plans, stubs, mocks and placeholders are not implementation. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| EX-04 | 1 | Respect approved APIs, contracts, data formats, persistence rules and interfaces. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| EX-05 | 1 | Keep changes within scope; avoid unrelated refactors and features. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| EX-06 | 1 | Follow existing project conventions and maintain readable, supportable code. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| EX-07 | 1 | Record exact changed paths and run appropriate initial checks; report only observed results. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
 
 ### qa-testing-engineer
 
@@ -118,7 +139,14 @@ Group 1: copy every QA-01 through QA-08 check verbatim from the canonical fixed-
 
 | Parameter ID | Group (1 fixed / 2 task-specific) | Check/action | Expected result | Evidence | Status |
 |---|---|---|---|---|---|
-| <QA-01 or QA-T01> | <1 or 2> | <CHECK> | <EXPECTED> | <EVIDENCE> | <STATUS> |
+| QA-01 | 1 | Map every acceptance criterion to a check. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| QA-02 | 1 | Verify valid and normal/positive workflows. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| QA-03 | 1 | Test invalid, malformed, missing or unauthorized inputs where relevant. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| QA-04 | 1 | Test boundary values and state transitions. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| QA-05 | 1 | Verify relevant component integration and contracts. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| QA-06 | 1 | Check for regressions in related existing behavior. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| QA-07 | 1 | Record reproducible commands, environment assumptions and actual results. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| QA-08 | 1 | Record defects, severity, evidence, and retest results. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
 
 ### safety-engineer
 
@@ -133,7 +161,13 @@ Group 1: copy every SAF-01 through SAF-07 check verbatim from the canonical fixe
 
 | Parameter ID | Group (1 fixed / 2 task-specific) | Check/action | Expected result | Evidence | Status |
 |---|---|---|---|---|---|
-| <SAF-01 or SAF-T01> | <1 or 2> | <CHECK> | <EXPECTED> | <EVIDENCE> | <STATUS> |
+| SAF-01 | 1 | Identify assets, actors, privileges, sensitive data and trust boundaries. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| SAF-02 | 1 | Identify realistic threats, misuse, failures and harm scenarios. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| SAF-03 | 1 | Assess likelihood and impact/severity separately and explain uncertainty. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| SAF-04 | 1 | Identify preventive controls. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| SAF-05 | 1 | Identify detection, containment, correction, rollback and recovery controls. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| SAF-06 | 1 | Verify control effectiveness by inspection or tests; separate implemented from proposed controls. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| SAF-07 | 1 | Record residual risk, assumptions, owners and decisions requiring approval. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
 
 ### project-structure-engineer
 
@@ -148,7 +182,13 @@ Group 1: copy every PS-01 through PS-07 check verbatim from the canonical fixed-
 
 | Parameter ID | Group (1 fixed / 2 task-specific) | Check/action | Expected result | Evidence | Status |
 |---|---|---|---|---|---|
-| <PS-01 or PS-T01> | <1 or 2> | <CHECK> | <EXPECTED> | <EVIDENCE> | <STATUS> |
+| PS-01 | 1 | Verify every path exists at the intended location and serves a defined purpose. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| PS-02 | 1 | Use lowercase-kebab-case for new paths unless a user-fixed name requires exact casing. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| PS-03 | 1 | Detect duplicate, ambiguous, shadow or misleading paths. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| PS-04 | 1 | Keep structure consistent with repository conventions and the Production/Development boundary. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| PS-05 | 1 | Verify links, imports, config paths and documentation references. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| PS-06 | 1 | Assess reference and migration risk before any authorized move or rename. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| PS-07 | 1 | Preserve existing files and verify final repository integrity. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
 
 ### design-engineer
 
@@ -163,7 +203,14 @@ Group 1: copy every DE-01 through DE-08 check verbatim from the canonical fixed-
 
 | Parameter ID | Group (1 fixed / 2 task-specific) | Check/action | Expected result | Evidence | Status |
 |---|---|---|---|---|---|
-| <DE-01 or DE-T01> | <1 or 2> | <CHECK> | <EXPECTED> | <EVIDENCE> | <STATUS> |
+| DE-01 | 1 | Maintain coherent visual identity. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| DE-02 | 1 | Ensure shared components and patterns are consistent. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| DE-03 | 1 | Define consistent colors, tokens, contrast and semantic states. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| DE-04 | 1 | Specify readable typography and hierarchy. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| DE-05 | 1 | Check layout, spacing, alignment, density and content priority. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| DE-06 | 1 | Specify relevant loading, empty, success, warning, error, disabled, selected and focus states. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| DE-07 | 1 | Consider Windows desktop sizes, resizing and scaling. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| DE-08 | 1 | Provide measurable, implementation-ready specifications. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
 
 ### ux-interaction-engineer
 
@@ -178,7 +225,14 @@ Group 1: copy every UX-01 through UX-08 check verbatim from the canonical fixed-
 
 | Parameter ID | Group (1 fixed / 2 task-specific) | Check/action | Expected result | Evidence | Status |
 |---|---|---|---|---|---|
-| <UX-01 or UX-T01> | <1 or 2> | <CHECK> | <EXPECTED> | <EVIDENCE> | <STATUS> |
+| UX-01 | 1 | Map the user goal and complete interaction flow. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| UX-02 | 1 | Ensure controls, terms, decisions and feedback are understandable. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| UX-03 | 1 | Remove unnecessary steps and cognitive load without weakening safety. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| UX-04 | 1 | Prevent avoidable user errors through clear constraints and feedback. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| UX-05 | 1 | Address loading, empty, progress, success, error, cancellation and timeout states. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| UX-06 | 1 | Provide suitable retry, resume, undo and recovery paths. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| UX-07 | 1 | Consider keyboard use, focus, readability and accessibility. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| UX-08 | 1 | Preserve terminology, navigation and predictable state transitions. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
 
 ### feasibility-engineer
 
@@ -193,7 +247,13 @@ Group 1: copy every FE-01 through FE-07 check verbatim from the canonical fixed-
 
 | Parameter ID | Group (1 fixed / 2 task-specific) | Check/action | Expected result | Evidence | Status |
 |---|---|---|---|---|---|
-| <FE-01 or FE-T01> | <1 or 2> | <CHECK> | <EXPECTED> | <EVIDENCE> | <STATUS> |
+| FE-01 | 1 | Assess technical feasibility and platform/architecture constraints. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| FE-02 | 1 | Assess effort, duration and sequencing realistically. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| FE-03 | 1 | Identify economic, hardware, service, skill and maintenance resources. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| FE-04 | 1 | Identify third-party, approval, licensing, infrastructure and availability dependencies. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| FE-05 | 1 | List assumptions and evidence required to validate them. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| FE-06 | 1 | State estimate confidence, uncertainty and missing information. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| FE-07 | 1 | Compare realistic alternatives and fallbacks. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
 
 ### idea-alignment-engineer
 
@@ -208,7 +268,12 @@ Group 1: copy every IA-01 through IA-06 check verbatim from the canonical fixed-
 
 | Parameter ID | Group (1 fixed / 2 task-specific) | Check/action | Expected result | Evidence | Status |
 |---|---|---|---|---|---|
-| <IA-01 or IA-T01> | <1 or 2> | <CHECK> | <EXPECTED> | <EVIDENCE> | <STATUS> |
+| IA-01 | 1 | Check alignment with the approved product purpose. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| IA-02 | 1 | Preserve the intended value proposition. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| IA-03 | 1 | Check fit with target users and documented needs. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| IA-04 | 1 | Respect approved scope, exclusions and decisions. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| IA-05 | 1 | Detect feature creep, assumption-driven changes and goal substitution. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| IA-06 | 1 | Explain long-term impact and fidelity to user intent. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
 
 ### project-mapping-engineer
 
@@ -223,7 +288,13 @@ Group 1: copy every PM-01 through PM-07 check verbatim from the canonical fixed-
 
 | Parameter ID | Group (1 fixed / 2 task-specific) | Check/action | Expected result | Evidence | Status |
 |---|---|---|---|---|---|
-| <PM-01 or PM-T01> | <1 or 2> | <CHECK> | <EXPECTED> | <EVIDENCE> | <STATUS> |
+| PM-01 | 1 | Identify all relevant current and planned components. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| PM-02 | 1 | Inspect and state actual current status from real files, code or behavior. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| PM-03 | 1 | Trace inputs, outputs, owners and consumers. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| PM-04 | 1 | Map component links, contracts, data flows and control flows. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| PM-05 | 1 | Reference actual repository paths, source sections and evidence. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| PM-06 | 1 | Detect gaps, duplicates, orphans, ambiguity and unknowns. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
+| PM-07 | 1 | Preserve requirement-to-task-to-component-to-evidence traceability and separate current from target state. | <EXPECTED_RESULT> | <EVIDENCE_REQUIRED> | pending |
 
 ## 7. Consultation register
 
@@ -285,9 +356,9 @@ Preserve earlier records. Correct a previous statement by appending a dated clar
 
 Every direct incoming dependency must have exactly one review in the canonical record below. Use the target task's status document as the review owner.
 
-| Prerequisite task ID | Classification | Validation status | Concrete reason | Evidence | Scheduling effect |
-|---|---|---|---|---|---|
-| <TASK_ID> | <hard_dependency / contract_or_interface_dependency / sequencing_only / unreviewed> | <unreviewed / validated / disputed> | <WHY THIS RELATION EXISTS> | <PATHS_OR_HTTPS_URLS> | <must be done / validated sequencing-only bypass / blocked pending review> |
+| Prerequisite task ID | Edge type | Classification | Validation status | Observed status | Required/consumed artifact | Consumer reason and impact | Evidence | Reviewer / timestamp | Scheduling effect |
+|---|---|---|---|---|---|---|---|---|---|
+| <TASK_ID> | blocks | <hard_dependency / contract_or_interface_dependency / sequencing_only / unreviewed> | <unreviewed / validated / disputed> | <OBSERVED_GRAPH_STATUS> | <EXACT_ARTIFACT_OR_NO_ARTIFACT_CONSUMED> | <WHY_THIS_CONSUMER_NEEDS_OR_DOES_NOT_NEED_IT> | <PATHS_OR_HTTPS_URLS> | <ROLE / ISO-8601> | <must be done / validated sequencing-only bypass / blocked pending review> |
 
 A validated edge requires a rationale and evidence. A sequencing-only edge can be bypassed only after validation. Record every added, removed or reclassified edge in the append-only edge-change log in the canonical record.
 
@@ -295,9 +366,9 @@ A validated edge requires a rationale and evidence. A sequencing-only edge can b
 
 Append one row for every attempt, including failures, partial work, blocked work, corrections and reopenings. Do not rewrite or delete earlier attempts.
 
-| Attempt ID | Start | End | Result | Summary | Changed files | Commit SHA or null + explanation | Commands/checks and observed result | Failure details | Blocker/reopen reason | Contract changes | Follow-up |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| <TASK_ID>-A001 | <ISO-8601> | <ISO-8601> | <succeeded/failed/partial/blocked/reopened> | <WHAT HAPPENED> | <EXACT PATHS> | <40-CHAR SHA OR NULL WITH REASON> | <EXACT COMMAND/CHECK, PASS/FAIL/NOT RUN> | <DETAIL OR NONE> | <DETAIL OR NONE> | <AFFECTED CONTRACTS OR NONE> | <NEXT ACTION OR NONE> |
+| Attempt ID | Start/end | Result/summary | Changed files | Commit SHA + reason | Related commits | Tests/checks: name, command, result, run ID/URL, environment, note | Failure | Blocker/reopen | Contract changes | Device/host (redacted) | Model revision/hash | Pre/post-upgrade snapshot | Follow-up |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| <TASK_ID>-A001 | <START_ISO>/<END_ISO> | <RESULT_AND_SUMMARY> | <EXACT_PATHS> | <40-CHAR SHA OR NULL + REASON> | <SHA_LIST> | <EXACT_TEST_RECORDS_AND_OBSERVED_RESULTS> | <DETAIL_OR_NONE> | <DETAIL_OR_NONE> | <CONTRACT_IDS_OR_NONE> | <REDACTED_DETAILS_OR_NOT_APPLICABLE> | <MODEL_ID_AND_SHA256_OR_NOT_APPLICABLE> | <PRE/POST_STATE_OR_NOT_APPLICABLE> | <NEXT_ACTION_OR_NONE> |
 
 The execution summary must exactly match the history: attempt_count, failed_attempt_count, tests_passed and tests_failed. A task may be done only with a succeeded attempt and at least one passing, recorded verification.
 
@@ -332,7 +403,7 @@ The ten role entries below are mandatory. Update each entry's state, activation 
 <!-- WHITEP_TASK_STATUS_RECORD_START -->
 ```json
 {
-  "schema_version": "1.1",
+  "schema_version": "1.2",
   "task_id": "<TASK_ID>",
   "graph_status": "<not_started|in_progress|done|blocked|deferred_final>",
   "source_baseline": {
@@ -361,28 +432,1078 @@ The ten role entries below are mandatory. Update each entry's state, activation 
   "execution_summary": {
     "attempt_count": 0,
     "failed_attempt_count": 0,
+    "last_attempt_id": null,
+    "last_attempt_result": null,
+    "changed_files": [],
+    "related_commits": [],
     "tests_passed": [],
-    "tests_failed": []
+    "tests_failed": [],
+    "blocked_reason": null,
+    "reopened_reason": null
   },
   "agent_reviews": [
-    {"role_id":"senior-engineer","state":"not_scheduled","normal_activation_count":0,"execution_mode":"not_run","work_log_path":"Production/Development/Tasks/<TASK_ID>/senior-engineer/work-log.md","base_document_destination":"Production/Development/base-documents/project-mapping-engineer","fixed_parameter_ids":[],"task_specific_parameter_ids":[],"not_applicable_reason":null},
-    {"role_id":"execution-engineer","state":"not_scheduled","normal_activation_count":0,"execution_mode":"not_run","work_log_path":"Production/Development/Tasks/<TASK_ID>/execution-engineer/work-log.md","base_document_destination":"Production/Development/base-documents/project-structure-engineer","fixed_parameter_ids":[],"task_specific_parameter_ids":[],"not_applicable_reason":null},
-    {"role_id":"qa-testing-engineer","state":"not_scheduled","normal_activation_count":0,"execution_mode":"not_run","work_log_path":"Production/Development/Tasks/<TASK_ID>/qa-testing-engineer/work-log.md","base_document_destination":"Production/Development/base-documents/safety-engineer","fixed_parameter_ids":[],"task_specific_parameter_ids":[],"not_applicable_reason":null},
-    {"role_id":"safety-engineer","state":"not_scheduled","normal_activation_count":0,"execution_mode":"not_run","work_log_path":"Production/Development/Tasks/<TASK_ID>/safety-engineer/work-log.md","base_document_destination":"Production/Development/base-documents/safety-engineer","fixed_parameter_ids":[],"task_specific_parameter_ids":[],"not_applicable_reason":null},
-    {"role_id":"project-structure-engineer","state":"not_scheduled","normal_activation_count":0,"execution_mode":"not_run","work_log_path":"Production/Development/Tasks/<TASK_ID>/project-structure-engineer/work-log.md","base_document_destination":"Production/Development/base-documents/project-structure-engineer","fixed_parameter_ids":[],"task_specific_parameter_ids":[],"not_applicable_reason":null},
-    {"role_id":"design-engineer","state":"not_scheduled","normal_activation_count":0,"execution_mode":"not_run","work_log_path":"Production/Development/Tasks/<TASK_ID>/design-engineer/work-log.md","base_document_destination":"Production/Development/base-documents/design-engineer","fixed_parameter_ids":[],"task_specific_parameter_ids":[],"not_applicable_reason":null},
-    {"role_id":"ux-interaction-engineer","state":"not_scheduled","normal_activation_count":0,"execution_mode":"not_run","work_log_path":"Production/Development/Tasks/<TASK_ID>/ux-interaction-engineer/work-log.md","base_document_destination":"Production/Development/base-documents/ux-interaction-engineer","fixed_parameter_ids":[],"task_specific_parameter_ids":[],"not_applicable_reason":null},
-    {"role_id":"feasibility-engineer","state":"not_scheduled","normal_activation_count":0,"execution_mode":"not_run","work_log_path":"Production/Development/Tasks/<TASK_ID>/feasibility-engineer/work-log.md","base_document_destination":"Production/Development/base-documents/project-structure-engineer","fixed_parameter_ids":[],"task_specific_parameter_ids":[],"not_applicable_reason":null},
-    {"role_id":"idea-alignment-engineer","state":"not_scheduled","normal_activation_count":0,"execution_mode":"not_run","work_log_path":"Production/Development/Tasks/<TASK_ID>/idea-alignment-engineer/work-log.md","base_document_destination":"Production/Development/base-documents/project-mapping-engineer","fixed_parameter_ids":[],"task_specific_parameter_ids":[],"not_applicable_reason":null},
-    {"role_id":"project-mapping-engineer","state":"not_scheduled","normal_activation_count":0,"execution_mode":"not_run","work_log_path":"Production/Development/Tasks/<TASK_ID>/project-mapping-engineer/work-log.md","base_document_destination":"Production/Development/base-documents/project-mapping-engineer","fixed_parameter_ids":[],"task_specific_parameter_ids":[],"not_applicable_reason":null}
+    {
+      "role_id": "senior-engineer",
+      "state": "not_scheduled",
+      "normal_activation_count": 0,
+      "execution_mode": "not_run",
+      "work_log_path": "Production/Development/Tasks/<TASK_ID>/senior-engineer/work-log.md",
+      "base_document_destination": "Production/Development/base-documents/project-mapping-engineer",
+      "fixed_parameter_ids": [],
+      "task_specific_parameter_ids": [],
+      "not_applicable_reason": null
+    },
+    {
+      "role_id": "execution-engineer",
+      "state": "not_scheduled",
+      "normal_activation_count": 0,
+      "execution_mode": "not_run",
+      "work_log_path": "Production/Development/Tasks/<TASK_ID>/execution-engineer/work-log.md",
+      "base_document_destination": "Production/Development/base-documents/project-structure-engineer",
+      "fixed_parameter_ids": [],
+      "task_specific_parameter_ids": [],
+      "not_applicable_reason": null
+    },
+    {
+      "role_id": "qa-testing-engineer",
+      "state": "not_scheduled",
+      "normal_activation_count": 0,
+      "execution_mode": "not_run",
+      "work_log_path": "Production/Development/Tasks/<TASK_ID>/qa-testing-engineer/work-log.md",
+      "base_document_destination": "Production/Development/base-documents/safety-engineer",
+      "fixed_parameter_ids": [],
+      "task_specific_parameter_ids": [],
+      "not_applicable_reason": null
+    },
+    {
+      "role_id": "safety-engineer",
+      "state": "not_scheduled",
+      "normal_activation_count": 0,
+      "execution_mode": "not_run",
+      "work_log_path": "Production/Development/Tasks/<TASK_ID>/safety-engineer/work-log.md",
+      "base_document_destination": "Production/Development/base-documents/safety-engineer",
+      "fixed_parameter_ids": [],
+      "task_specific_parameter_ids": [],
+      "not_applicable_reason": null
+    },
+    {
+      "role_id": "project-structure-engineer",
+      "state": "not_scheduled",
+      "normal_activation_count": 0,
+      "execution_mode": "not_run",
+      "work_log_path": "Production/Development/Tasks/<TASK_ID>/project-structure-engineer/work-log.md",
+      "base_document_destination": "Production/Development/base-documents/project-structure-engineer",
+      "fixed_parameter_ids": [],
+      "task_specific_parameter_ids": [],
+      "not_applicable_reason": null
+    },
+    {
+      "role_id": "design-engineer",
+      "state": "not_scheduled",
+      "normal_activation_count": 0,
+      "execution_mode": "not_run",
+      "work_log_path": "Production/Development/Tasks/<TASK_ID>/design-engineer/work-log.md",
+      "base_document_destination": "Production/Development/base-documents/design-engineer",
+      "fixed_parameter_ids": [],
+      "task_specific_parameter_ids": [],
+      "not_applicable_reason": null
+    },
+    {
+      "role_id": "ux-interaction-engineer",
+      "state": "not_scheduled",
+      "normal_activation_count": 0,
+      "execution_mode": "not_run",
+      "work_log_path": "Production/Development/Tasks/<TASK_ID>/ux-interaction-engineer/work-log.md",
+      "base_document_destination": "Production/Development/base-documents/ux-interaction-engineer",
+      "fixed_parameter_ids": [],
+      "task_specific_parameter_ids": [],
+      "not_applicable_reason": null
+    },
+    {
+      "role_id": "feasibility-engineer",
+      "state": "not_scheduled",
+      "normal_activation_count": 0,
+      "execution_mode": "not_run",
+      "work_log_path": "Production/Development/Tasks/<TASK_ID>/feasibility-engineer/work-log.md",
+      "base_document_destination": "Production/Development/base-documents/project-structure-engineer",
+      "fixed_parameter_ids": [],
+      "task_specific_parameter_ids": [],
+      "not_applicable_reason": null
+    },
+    {
+      "role_id": "idea-alignment-engineer",
+      "state": "not_scheduled",
+      "normal_activation_count": 0,
+      "execution_mode": "not_run",
+      "work_log_path": "Production/Development/Tasks/<TASK_ID>/idea-alignment-engineer/work-log.md",
+      "base_document_destination": "Production/Development/base-documents/project-mapping-engineer",
+      "fixed_parameter_ids": [],
+      "task_specific_parameter_ids": [],
+      "not_applicable_reason": null
+    },
+    {
+      "role_id": "project-mapping-engineer",
+      "state": "not_scheduled",
+      "normal_activation_count": 0,
+      "execution_mode": "not_run",
+      "work_log_path": "Production/Development/Tasks/<TASK_ID>/project-mapping-engineer/work-log.md",
+      "base_document_destination": "Production/Development/base-documents/project-mapping-engineer",
+      "fixed_parameter_ids": [],
+      "task_specific_parameter_ids": [],
+      "not_applicable_reason": null
+    }
   ],
   "consultations": [],
   "requirement_change_register": [],
   "affected_task_reconciliation": [],
   "edge_change_log": [],
-  "contract_revalidation": {"state":"not_required","affected_task_ids":[],"reason":null,"evidence":[]},
+  "contract_revalidation": {
+    "state": "not_required",
+    "triggering_contracts": [],
+    "affected_task_ids": [],
+    "reason": null,
+    "evidence": []
+  },
   "blocked_reason": null,
-  "deferral": null
+  "deferral": null,
+  "task_definition": {
+    "title": "<TASK_TITLE>",
+    "section": "<SOURCE_SECTION_OR_WORKSTREAM>",
+    "source_task_id": null,
+    "source_change_operation": null,
+    "affected_task_ids": [],
+    "description": "<COMPLETE_TASK_DESCRIPTION>",
+    "implementation_focus": "<EXACT_IMPLEMENTATION_OR_REVIEW_FOCUS>",
+    "inputs": [
+      {
+        "input_id": "IN-001",
+        "description": "<INPUT_PURPOSE>",
+        "source_refs": [
+          "<SOURCE_PATH_OR_REQUIREMENT_ID>"
+        ],
+        "provider_task_ids": [],
+        "required_artifact": "<EXACT_REQUIRED_INPUT_OR_CONTRACT>",
+        "availability": "pending",
+        "evidence": [],
+        "notes": "<ASSUMPTIONS_OR_NONE>"
+      }
+    ],
+    "outputs": [
+      {
+        "output_id": "OUT-001",
+        "description": "<DELIVERABLE_AND_CONSUMER_PURPOSE>",
+        "output_type": "<code|test|document|configuration|design|decision|other>",
+        "expected_path": "<EXPECTED_REPOSITORY_RELATIVE_PATH>",
+        "acceptance_criteria_ids": [
+          "ACC-001"
+        ],
+        "status": "pending",
+        "actual_paths": [],
+        "evidence": [],
+        "not_applicable_reason": null
+      }
+    ],
+    "start_condition": "<ALL_EXPLICIT_START_CONDITIONS>",
+    "acceptance_summary": "<COMPLETE_ACCEPTANCE_SUMMARY>",
+    "status_label_fa": "<PERSIAN_STATUS_LABEL>",
+    "notes": []
+  },
+  "expected_output_paths": [
+    "<EXPECTED_REPOSITORY_RELATIVE_PATH>"
+  ],
+  "parameter_reviews": [
+    {
+      "role_id": "senior-engineer",
+      "parameter_id": "SE-01",
+      "group": "fixed",
+      "check": "Read graph, catalog, relevant complete source, existing task records, all role prompts and five overall-vision files.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "senior-engineer",
+      "parameter_id": "SE-02",
+      "group": "fixed",
+      "check": "Select or resume only a task whose genuine direct prerequisites are satisfied.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "senior-engineer",
+      "parameter_id": "SE-03",
+      "group": "fixed",
+      "check": "Keep graph nodes to exactly three keys and validate true direct acyclic dependencies.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "senior-engineer",
+      "parameter_id": "SE-04",
+      "group": "fixed",
+      "check": "Define complete scope, exclusions, outputs, interfaces and verifiable acceptance criteria.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "senior-engineer",
+      "parameter_id": "SE-05",
+      "group": "fixed",
+      "check": "Choose relevant roles and their order, task-specific parameters and baseline destinations before activation.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "senior-engineer",
+      "parameter_id": "SE-06",
+      "group": "fixed",
+      "check": "Enforce one normal activation per role and bounded consultation-only responses.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "senior-engineer",
+      "parameter_id": "SE-07",
+      "group": "fixed",
+      "check": "Verify real outputs, evidence, tests, integration and final acceptance.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "senior-engineer",
+      "parameter_id": "SE-08",
+      "group": "fixed",
+      "check": "Capture the exact read-only source version, current main commit, source blob, graph blob and catalog blob before creating or resuming a task record.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "senior-engineer",
+      "parameter_id": "SE-09",
+      "group": "fixed",
+      "check": "Derive a deterministic topological order and conservative execution waves from the complete current graph.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "senior-engineer",
+      "parameter_id": "SE-10",
+      "group": "fixed",
+      "check": "Record each selected task's derived topological position and wave in task-status.md without adding scheduling fields to graph nodes.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "senior-engineer",
+      "parameter_id": "SE-11",
+      "group": "fixed",
+      "check": "Distinguish wave readiness from concurrency authorization; preserve White-P's one-active-task and sequential-role rules by default.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "senior-engineer",
+      "parameter_id": "SE-12",
+      "group": "fixed",
+      "check": "Version each approved requirement or shared-contract change and record exact changed requirement IDs, before/after versions, reason and evidence.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "senior-engineer",
+      "parameter_id": "SE-13",
+      "group": "fixed",
+      "check": "Trace each change to directly and transitively affected tasks, interfaces, consumers and acceptance evidence.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "senior-engineer",
+      "parameter_id": "SE-14",
+      "group": "fixed",
+      "check": "Reconcile every affected historical task individually while preserving its baseline status and previous evidence.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "senior-engineer",
+      "parameter_id": "SE-15",
+      "group": "fixed",
+      "check": "Require evidence-backed contract and acceptance revalidation before relying on affected historical completion; document any justified status transition.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "senior-engineer",
+      "parameter_id": "SE-16",
+      "group": "fixed",
+      "check": "Derive impact counts and status summaries from canonical change/reconciliation records instead of manually maintained duplicate totals.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "execution-engineer",
+      "parameter_id": "EX-01",
+      "group": "fixed",
+      "check": "Conform to approved requirements and the exact task scope.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "execution-engineer",
+      "parameter_id": "EX-02",
+      "group": "fixed",
+      "check": "Verify implementation logic and relevant state transitions.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "execution-engineer",
+      "parameter_id": "EX-03",
+      "group": "fixed",
+      "check": "Create complete real outputs; plans, stubs, mocks and placeholders are not implementation.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "execution-engineer",
+      "parameter_id": "EX-04",
+      "group": "fixed",
+      "check": "Respect approved APIs, contracts, data formats, persistence rules and interfaces.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "execution-engineer",
+      "parameter_id": "EX-05",
+      "group": "fixed",
+      "check": "Keep changes within scope; avoid unrelated refactors and features.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "execution-engineer",
+      "parameter_id": "EX-06",
+      "group": "fixed",
+      "check": "Follow existing project conventions and maintain readable, supportable code.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "execution-engineer",
+      "parameter_id": "EX-07",
+      "group": "fixed",
+      "check": "Record exact changed paths and run appropriate initial checks; report only observed results.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "qa-testing-engineer",
+      "parameter_id": "QA-01",
+      "group": "fixed",
+      "check": "Map every acceptance criterion to a check.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "qa-testing-engineer",
+      "parameter_id": "QA-02",
+      "group": "fixed",
+      "check": "Verify valid and normal/positive workflows.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "qa-testing-engineer",
+      "parameter_id": "QA-03",
+      "group": "fixed",
+      "check": "Test invalid, malformed, missing or unauthorized inputs where relevant.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "qa-testing-engineer",
+      "parameter_id": "QA-04",
+      "group": "fixed",
+      "check": "Test boundary values and state transitions.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "qa-testing-engineer",
+      "parameter_id": "QA-05",
+      "group": "fixed",
+      "check": "Verify relevant component integration and contracts.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "qa-testing-engineer",
+      "parameter_id": "QA-06",
+      "group": "fixed",
+      "check": "Check for regressions in related existing behavior.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "qa-testing-engineer",
+      "parameter_id": "QA-07",
+      "group": "fixed",
+      "check": "Record reproducible commands, environment assumptions and actual results.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "qa-testing-engineer",
+      "parameter_id": "QA-08",
+      "group": "fixed",
+      "check": "Record defects, severity, evidence, and retest results.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "safety-engineer",
+      "parameter_id": "SAF-01",
+      "group": "fixed",
+      "check": "Identify assets, actors, privileges, sensitive data and trust boundaries.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "safety-engineer",
+      "parameter_id": "SAF-02",
+      "group": "fixed",
+      "check": "Identify realistic threats, misuse, failures and harm scenarios.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "safety-engineer",
+      "parameter_id": "SAF-03",
+      "group": "fixed",
+      "check": "Assess likelihood and impact/severity separately and explain uncertainty.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "safety-engineer",
+      "parameter_id": "SAF-04",
+      "group": "fixed",
+      "check": "Identify preventive controls.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "safety-engineer",
+      "parameter_id": "SAF-05",
+      "group": "fixed",
+      "check": "Identify detection, containment, correction, rollback and recovery controls.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "safety-engineer",
+      "parameter_id": "SAF-06",
+      "group": "fixed",
+      "check": "Verify control effectiveness by inspection or tests; separate implemented from proposed controls.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "safety-engineer",
+      "parameter_id": "SAF-07",
+      "group": "fixed",
+      "check": "Record residual risk, assumptions, owners and decisions requiring approval.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "project-structure-engineer",
+      "parameter_id": "PS-01",
+      "group": "fixed",
+      "check": "Verify every path exists at the intended location and serves a defined purpose.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "project-structure-engineer",
+      "parameter_id": "PS-02",
+      "group": "fixed",
+      "check": "Use lowercase-kebab-case for new paths unless a user-fixed name requires exact casing.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "project-structure-engineer",
+      "parameter_id": "PS-03",
+      "group": "fixed",
+      "check": "Detect duplicate, ambiguous, shadow or misleading paths.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "project-structure-engineer",
+      "parameter_id": "PS-04",
+      "group": "fixed",
+      "check": "Keep structure consistent with repository conventions and the Production/Development boundary.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "project-structure-engineer",
+      "parameter_id": "PS-05",
+      "group": "fixed",
+      "check": "Verify links, imports, config paths and documentation references.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "project-structure-engineer",
+      "parameter_id": "PS-06",
+      "group": "fixed",
+      "check": "Assess reference and migration risk before any authorized move or rename.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "project-structure-engineer",
+      "parameter_id": "PS-07",
+      "group": "fixed",
+      "check": "Preserve existing files and verify final repository integrity.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "design-engineer",
+      "parameter_id": "DE-01",
+      "group": "fixed",
+      "check": "Maintain coherent visual identity.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "design-engineer",
+      "parameter_id": "DE-02",
+      "group": "fixed",
+      "check": "Ensure shared components and patterns are consistent.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "design-engineer",
+      "parameter_id": "DE-03",
+      "group": "fixed",
+      "check": "Define consistent colors, tokens, contrast and semantic states.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "design-engineer",
+      "parameter_id": "DE-04",
+      "group": "fixed",
+      "check": "Specify readable typography and hierarchy.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "design-engineer",
+      "parameter_id": "DE-05",
+      "group": "fixed",
+      "check": "Check layout, spacing, alignment, density and content priority.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "design-engineer",
+      "parameter_id": "DE-06",
+      "group": "fixed",
+      "check": "Specify relevant loading, empty, success, warning, error, disabled, selected and focus states.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "design-engineer",
+      "parameter_id": "DE-07",
+      "group": "fixed",
+      "check": "Consider Windows desktop sizes, resizing and scaling.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "design-engineer",
+      "parameter_id": "DE-08",
+      "group": "fixed",
+      "check": "Provide measurable, implementation-ready specifications.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "ux-interaction-engineer",
+      "parameter_id": "UX-01",
+      "group": "fixed",
+      "check": "Map the user goal and complete interaction flow.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "ux-interaction-engineer",
+      "parameter_id": "UX-02",
+      "group": "fixed",
+      "check": "Ensure controls, terms, decisions and feedback are understandable.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "ux-interaction-engineer",
+      "parameter_id": "UX-03",
+      "group": "fixed",
+      "check": "Remove unnecessary steps and cognitive load without weakening safety.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "ux-interaction-engineer",
+      "parameter_id": "UX-04",
+      "group": "fixed",
+      "check": "Prevent avoidable user errors through clear constraints and feedback.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "ux-interaction-engineer",
+      "parameter_id": "UX-05",
+      "group": "fixed",
+      "check": "Address loading, empty, progress, success, error, cancellation and timeout states.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "ux-interaction-engineer",
+      "parameter_id": "UX-06",
+      "group": "fixed",
+      "check": "Provide suitable retry, resume, undo and recovery paths.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "ux-interaction-engineer",
+      "parameter_id": "UX-07",
+      "group": "fixed",
+      "check": "Consider keyboard use, focus, readability and accessibility.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "ux-interaction-engineer",
+      "parameter_id": "UX-08",
+      "group": "fixed",
+      "check": "Preserve terminology, navigation and predictable state transitions.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "feasibility-engineer",
+      "parameter_id": "FE-01",
+      "group": "fixed",
+      "check": "Assess technical feasibility and platform/architecture constraints.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "feasibility-engineer",
+      "parameter_id": "FE-02",
+      "group": "fixed",
+      "check": "Assess effort, duration and sequencing realistically.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "feasibility-engineer",
+      "parameter_id": "FE-03",
+      "group": "fixed",
+      "check": "Identify economic, hardware, service, skill and maintenance resources.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "feasibility-engineer",
+      "parameter_id": "FE-04",
+      "group": "fixed",
+      "check": "Identify third-party, approval, licensing, infrastructure and availability dependencies.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "feasibility-engineer",
+      "parameter_id": "FE-05",
+      "group": "fixed",
+      "check": "List assumptions and evidence required to validate them.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "feasibility-engineer",
+      "parameter_id": "FE-06",
+      "group": "fixed",
+      "check": "State estimate confidence, uncertainty and missing information.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "feasibility-engineer",
+      "parameter_id": "FE-07",
+      "group": "fixed",
+      "check": "Compare realistic alternatives and fallbacks.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "idea-alignment-engineer",
+      "parameter_id": "IA-01",
+      "group": "fixed",
+      "check": "Check alignment with the approved product purpose.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "idea-alignment-engineer",
+      "parameter_id": "IA-02",
+      "group": "fixed",
+      "check": "Preserve the intended value proposition.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "idea-alignment-engineer",
+      "parameter_id": "IA-03",
+      "group": "fixed",
+      "check": "Check fit with target users and documented needs.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "idea-alignment-engineer",
+      "parameter_id": "IA-04",
+      "group": "fixed",
+      "check": "Respect approved scope, exclusions and decisions.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "idea-alignment-engineer",
+      "parameter_id": "IA-05",
+      "group": "fixed",
+      "check": "Detect feature creep, assumption-driven changes and goal substitution.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "idea-alignment-engineer",
+      "parameter_id": "IA-06",
+      "group": "fixed",
+      "check": "Explain long-term impact and fidelity to user intent.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "project-mapping-engineer",
+      "parameter_id": "PM-01",
+      "group": "fixed",
+      "check": "Identify all relevant current and planned components.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "project-mapping-engineer",
+      "parameter_id": "PM-02",
+      "group": "fixed",
+      "check": "Inspect and state actual current status from real files, code or behavior.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "project-mapping-engineer",
+      "parameter_id": "PM-03",
+      "group": "fixed",
+      "check": "Trace inputs, outputs, owners and consumers.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "project-mapping-engineer",
+      "parameter_id": "PM-04",
+      "group": "fixed",
+      "check": "Map component links, contracts, data flows and control flows.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "project-mapping-engineer",
+      "parameter_id": "PM-05",
+      "group": "fixed",
+      "check": "Reference actual repository paths, source sections and evidence.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "project-mapping-engineer",
+      "parameter_id": "PM-06",
+      "group": "fixed",
+      "check": "Detect gaps, duplicates, orphans, ambiguity and unknowns.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    },
+    {
+      "role_id": "project-mapping-engineer",
+      "parameter_id": "PM-07",
+      "group": "fixed",
+      "check": "Preserve requirement-to-task-to-component-to-evidence traceability and separate current from target state.",
+      "expected_result": "<EXPECTED_RESULT>",
+      "evidence_required": "<EVIDENCE_REQUIRED>",
+      "status": "pending",
+      "evidence": [],
+      "rationale": null
+    }
+  ]
 }
 ```
 <!-- WHITEP_TASK_STATUS_RECORD_END -->
@@ -425,4 +1546,40 @@ The machine-readable field contracts are:
 - `requirement_change_register[]`: `change_id`, `recorded_at`, `source_version_before`, `source_version_after`, `changed_requirement_ids[]`, `change_summary`, `reason`, `evidence[]`, `affected_task_ids[]`, `recorded_by`, `status`.
 - `affected_task_reconciliation[]`: `change_id`, `task_id`, `baseline_status`, `current_status`, `impact_classification`, `decision`, `review_status`, `revalidation_status`, `status_changed`, `status_transition`, `task_status_path_exists`, `update_task_ids[]`, `evidence[]`, `reviewed_by`, `reviewed_at`.
 
-Schema 1.0 records remain immutable historical snapshots. New task-status documents use schema 1.1; never backfill historical facts that were not captured at the time.
+Schema 1.0 records remain immutable historical snapshots. New task-status documents use schema 1.2; never backfill historical facts that were not captured at the time.
+
+
+## 19. Complete task contract — project-equivalent fields outside the graph
+
+Every newly selected task must have a complete `task_definition` in the canonical JSON record. Detailed task fields belong in this task's `task-status.md`, populated by the Senior Engineer from the authoritative task catalog/source; they must never be copied into dependency-graph.json.
+
+| Project task-node field | White-P task-status location |
+|---|---|
+| `id` / `title` / `section` | `task_id`, `task_definition.title` and `task_definition.section` |
+| `source_task_id` / `source_change_operation` / `affected_task_ids` | Matching fields in `task_definition` |
+| `description` / `implementation_focus` / `start_condition` | Matching fields in `task_definition` |
+| `inputs` / `outputs` | Structured `task_definition.inputs[]` and `task_definition.outputs[]` |
+| `acceptance` / `acceptance_criteria` | `task_definition.acceptance_summary` and detailed `acceptance_criteria[]` |
+| `status` / `status_fa` | `graph_status` plus `task_definition.status_label_fa` |
+| `expected_output_paths` / `actual_output_paths` | Separate arrays; expected paths never prove that files exist |
+| `evidence` / `notes` | Canonical `evidence[]` and `task_definition.notes[]` |
+| `execution_summary` / `execution_history` | Derived summary plus append-only attempt ledger |
+
+Inputs identify their source/reference, provider task (when applicable), exact required artifact, availability state and evidence. Outputs identify type, expected path, linked acceptance IDs, creation/verification state, actual paths and evidence. Every actual path must exist at the captured commit; an expected path is never evidence.
+
+## 20. Machine-readable parameter audit
+
+The canonical `parameter_reviews[]` array contains one record for every fixed parameter in all ten roles (81 records), using the exact check text from agents/senior-engineer.md. It also contains each task-specific parameter defined for a selected role. Every record has role, parameter ID, group, exact check/action, expected result, evidence required, review status, evidence and rationale.
+
+The Markdown role tables and `parameter_reviews[]` are two representations of the same register and must agree. Every fixed ID appears exactly once. A passed parameter requires evidence; not_applicable requires a task-specific reason; pending or needs_consultation must never be presented as passed. A not-applicable role has zero activations and all its fixed checks visibly marked not_applicable. The graph guard validates this register against the canonical Senior Engineer prompt and the human-readable table.
+
+## 21. Reproducible attempt and verification record
+
+Every attempt, including implementation, local verification, CI, device testing, failure, partial work, skip, pending workflow, blocked work, correction or reopening, is append-only. Each schema 1.2 attempt records:
+- unique attempt ID, start/end timestamps, result, summary, exact changed files;
+- commit SHA or explicit null plus reason, related commit SHAs;
+- each test/check name, exact command, result (`passed`, `failed`, `not_run`, `skipped`, `pending`), environment, run ID, HTTPS URL, summary/note and failure/skip details;
+- failure, blocker, reopening, contract changes and next action;
+- redacted device/host information, model revision/hash and pre/post-upgrade snapshot where relevant.
+
+The execution summary is derived from attempt history: attempt counts, last attempt ID/result, changed files, related commits, passed/failed test commands, blocker and reopening reason. Do not manually change counters. A task cannot be done while its latest attempt is not succeeded, an applicable required check remains pending/skipped without an accepted scope reason, an output is missing, evidence is absent or material contract revalidation is unresolved.

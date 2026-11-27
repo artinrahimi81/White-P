@@ -266,9 +266,9 @@ Never change a historical status automatically because a task appears in a new r
 
 ### Canonical record and derived reporting
 
-New task-status records use schema version `1.1` and include `source_baseline`, `execution_plan`, `requirement_change_register` and `affected_task_reconciliation`. All detailed information stays in the selected task's single task-status.md JSON block and its Markdown review tables. Do not create a second metadata sidecar or manually maintained duplicate counter file.
+New task-status records use schema version `1.2` and include `source_baseline`, `execution_plan`, `requirement_change_register` and `affected_task_reconciliation`. All detailed information stays in the selected task's single task-status.md JSON block and its Markdown review tables. Do not create a second metadata sidecar or manually maintained duplicate counter file.
 
-Existing schema 1.0 records remain valid historical snapshots. Do not backfill fields or pretend a baseline/change review happened in the past. The graph guard supports both schema versions, uses the original SE-01…SE-07 baseline for 1.0 histories, and requires the current canonical SE-01…SE-16 registry for new 1.1 records.
+Existing schema 1.0 and 1.1 records remain immutable historical snapshots. Do not backfill fields or pretend a baseline/change review happened in the past. The graph guard supports schemas 1.0, 1.1 and 1.2; it uses the original SE-01…SE-07 baseline for schema 1.0, the schema 1.1 contract for schema 1.1, and the full current task-contract, parameter-audit and execution-ledger contract for new schema 1.2 records.
 
 ### Required order before any role activation
 
@@ -394,3 +394,28 @@ python Production/Development/tools/graph_guard.py Production/Development/depend
 ```
 
 The repository-backed run validates task-status JSON records, edge reviews, role lifecycle, actual output/evidence paths, attempt summaries and completion gates in addition to graph shape and DAG integrity. Fix errors before accepting a commit; do not weaken a rule merely to make a run green.
+
+
+## Complete project-equivalent task contract — schema 1.2
+
+The dependency graph is intentionally NOT the task specification. The Senior Engineer must populate every detailed item below in the selected task's single `task-status.md` canonical record from the live source, the catalog and repository evidence:
+
+1. **Identity and source traceability:** task ID/title; source section or workstream; optional source task ID; source change operation (`modify`, `add`, `remove`, `preserve`, `defer`, or null if no source mapping); exact affected legacy/task IDs.
+2. **Task contract:** complete description, objective, implementation focus, observed current state, target state, assumptions, scope, exclusions, open decisions, and exact start condition.
+3. **Inputs:** enumerate every required requirement, decision, predecessor artifact, API/schema/protocol, source section, test fixture and environment dependency. Give each a unique ID, purpose, source references, provider task IDs where applicable, exact required artifact, availability (`available`, `pending`, `blocked`, `not_applicable`), evidence and notes. Never silently assume an unavailable input.
+4. **Outputs:** enumerate each deliverable with unique ID, purpose, type, expected repository-relative path, linked acceptance IDs, status (`pending`, `created`, `verified`, `not_applicable`), actual paths, evidence and a non-applicability reason where relevant. Keep expected and actual paths separate; only verified files belong in actual output paths.
+5. **Acceptance:** preserve the source acceptance statement and decompose it into atomic unique criteria. Each criterion has a description, measurable expected result, verification method, status, evidence and a reason if not_applicable. Map outputs and test checks to acceptance IDs.
+6. **State/reporting:** record graph status, human-readable status label where useful, notes, blockers and the final decision. The task-status graph copy must agree exactly with the three-field graph node.
+7. **Dependency audit:** one review per direct incoming edge in the consumer's task-status. Record predecessor ID, edge type (`blocks`), classification (`hard_dependency`, `contract_or_interface_dependency`, `sequencing_only`), validation state, observed predecessor status, exact required/consumed artifact, concrete reason, consumer impact, evidence, reviewer and timestamp. For schema 1.2, every incoming edge must be validated before moving to `in_progress` or `done`. A sequencing-only edge may be bypassed only after validation and evidence that no predecessor output, contract, decision or state is consumed.
+8. **Parameter audit:** before activation, include all 81 exact fixed checks from this canonical prompt across all ten roles in both the Markdown parameter tables and machine-readable `parameter_reviews[]`. Include every task-specific check under a unique role-prefixed ID. Record expected result, evidence required, status, evidence and rationale for each; never store only IDs or totals. When a role is not applicable, preserve all of its checks and mark each not_applicable with a task-specific reason.
+9. **Execution attempts:** append every attempt, including local checks, CI/device runs, failure, partial work, blocked work, skipped or pending checks, corrections and reopening. Each attempt includes unique ID, timestamps, result, summary, exact changed files, commit SHA or explicit null plus reason, related commits, tests/checks, failure details, blocker, reopening reason, contract changes, follow-up, redacted device/host details, model revision/hash and pre/post-upgrade snapshot where relevant. Each test entry includes name, exact command, result (`passed`, `failed`, `not_run`, `skipped`, `pending`), environment, run ID, HTTPS URL, note/summary and failure/skip details. Keep local, CI, emulator, physical-device and real-product E2E evidence distinct.
+10. **Derived execution summary:** the graph guard independently derives attempt count, failed attempt count, last attempt ID/result, changed files, related commits, passed/failed test commands, blocker and reopening reason. Do not edit summary totals manually. A done task requires a latest succeeded attempt, actual existing outputs, all applicable acceptance criteria passed, reviewable evidence, successful verification and completed material contract revalidation.
+11. **Change reconciliation:** preserve the existing versioned change register and exactly one affected-task reconciliation record per affected task per change. Preserve baseline status and previous evidence; distinguish impact mapping from implementation revalidation; record direct/transitive impact, decision, any status transition and evidence. Derive all totals from canonical arrays.
+12. **Compatibility:** schema 1.0 and 1.1 files remain immutable historical records. New tasks use schema 1.2. Keep one JSON block inside task-status.md; do not create sidecar metadata, duplicate counters or task contract fields in the graph.
+
+### Schema 1.2 mapping from the project task-node model
+
+- `title`, `section`, `source_task_id`, `source_change_operation`, `affected_task_ids`, `description`, `implementation_focus`, `inputs`, `outputs`, `start_condition`, `acceptance`, and `status_fa` map to `task_definition` (`title` is stored separately from the task ID).
+- `acceptance_criteria`, `expected_output_paths`, `actual_output_paths`, `evidence`, `notes`, `execution_summary` and `execution_history` live in the corresponding task-status fields.
+- `depends_on` remains only a direct prerequisite ID array in the graph. Edge type/classification/validation/rationale/evidence belong in the consumer task-status `prerequisite_reviews[]`.
+- A graph task node remains exactly `{ "id": "...", "depends_on": [], "status": "not_started" }`. Never add titles, descriptions, inputs, outputs, checks, role names, paths, waves, history, test results, commit IDs or evidence to it.
