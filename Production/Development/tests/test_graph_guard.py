@@ -2,7 +2,7 @@ import json,sys,tempfile,unittest
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
-from tools.graph_guard import FIXED_PARAMETER_IDS,STATUS_END,STATUS_START,derive_execution_waves,extract_status_record,fixed_ids_from_prompt,fixed_parameter_definitions_from_prompt,valid_task_parameter_id,validate_graph,validate_parameter_registry
+from tools.graph_guard import FIXED_PARAMETER_IDS,ROLE_IDS,STATUS_END,STATUS_START,derive_execution_waves,extract_status_record,fixed_ids_from_prompt,fixed_parameter_definitions_from_prompt,valid_task_parameter_id,validate_graph,validate_parameter_registry
 
 def node(tid,deps=None,status="not_started"): return {"id":tid,"depends_on":deps or [],"status":status}
 def graph_fixture(): return {"tasks":[node("WP-INIT-001"),node("WP-INIT-002",["WP-INIT-001"])]}
@@ -233,3 +233,169 @@ class Schema11TaskStatusTests(unittest.TestCase):
   self.assertIn("INCOMPLETE_RECONCILIATION_TRANSITION",errors)
 
 if __name__=="__main__": unittest.main(verbosity=2)
+
+
+class Schema12ProjectParityTests(unittest.TestCase):
+ def make_fixture(self,root,task_id="WP-NEW-001",dependencies=None):
+  root.mkdir(parents=True,exist_ok=True)
+  prompt=root/"Production"/"Development"/"agents"/"senior-engineer.md"
+  prompt.parent.mkdir(parents=True,exist_ok=True)
+  definitions={}
+  prompt_lines=["# Senior Engineer","## Canonical fixed-parameter registry"]
+  for role in ROLE_IDS:
+   prompt_lines.append(f"### {role}")
+   definitions[role]=[]
+   for pid in FIXED_PARAMETER_IDS[role]:
+    check=f"Exact canonical check text for {pid}."
+    definitions[role].append((pid,check))
+    prompt_lines.append(f"- {pid} — {check}")
+  prompt.write_text("\n".join(prompt_lines)+"\n",encoding="utf-8")
+  (root/"source.md").write_text("Approved source input.",encoding="utf-8")
+  graph={"tasks":[node(task_id,dependencies or [],"in_progress")]}
+  positions,_=derive_execution_waves(graph)
+  parameter_reviews=[]
+  markdown_rows=[]
+  for role in ROLE_IDS:
+   for pid,check in definitions[role]:
+    parameter_reviews.append({
+     "role_id":role,"parameter_id":pid,"group":"fixed","check":check,
+     "expected_result":f"Expected result for {pid}.",
+     "evidence_required":f"Evidence required for {pid}.",
+     "status":"pending","evidence":[],"rationale":None
+    })
+    markdown_rows.append(f"| {pid} | 1 | {check} | Expected | Evidence | pending |")
+  record={
+   "schema_version":"1.2","task_id":task_id,"graph_status":"in_progress",
+   "source_baseline":{
+    "source_path":"source.md","source_version":"1.0","main_commit_sha":"1"*40,
+    "source_blob_sha":"2"*40,"graph_blob_sha":"3"*40,"catalog_blob_sha":"4"*40,
+    "captured_at":"2026-11-27T10:00:00Z"
+   },
+   "execution_plan":{
+    **positions[task_id],"scheduling_mode":"sequential_default",
+    "parallelism_authorized":False,"parallelism_reason":"One active task is the default.",
+    "parallelism_evidence":[]
+   },
+   "task_definition":{
+    "section":"Test workstream","source_task_id":None,"source_change_operation":None,
+    "affected_task_ids":[],"description":"A complete fixture task definition.",
+    "implementation_focus":"Validate schema 1.2 execution records.",
+    "inputs":[{
+     "input_id":"IN-001","description":"Approved source input.",
+     "source_refs":["source.md"],"provider_task_ids":[],
+     "required_artifact":"The approved source document.",
+     "availability":"available","evidence":[],"notes":"No assumptions."
+    }],
+    "outputs":[{
+     "output_id":"OUT-001","description":"A future output for this task.",
+     "output_type":"document","expected_path":"output.md",
+     "acceptance_criteria_ids":["ACC-001"],"status":"pending",
+     "actual_paths":[],"evidence":[],"not_applicable_reason":None
+    }],
+    "start_condition":"The graph prerequisites are reviewed and satisfied.",
+    "acceptance_summary":"The task output is produced and verified.",
+    "status_label_fa":"در حال انجام","notes":[]
+   },
+   "expected_output_paths":["output.md"],"prerequisite_reviews":[],
+   "acceptance_criteria":[{
+    "id":"ACC-001","description":"Create a real output.",
+    "expected_result":"output.md exists and is reviewed.",
+    "verification_method":"Inspect the actual file and recorded evidence.",
+    "status":"pending","evidence":[],"rationale":None
+   }],
+   "actual_output_paths":[],"evidence":[],"execution_history":[],
+   "execution_summary":{
+    "attempt_count":0,"failed_attempt_count":0,"last_attempt_id":None,
+    "last_attempt_result":None,"changed_files":[],"related_commits":[],
+    "tests_passed":[],"tests_failed":[],"blocked_reason":None,"reopened_reason":None
+   },
+   "agent_reviews":[{
+    "role_id":role,"state":"not_scheduled","normal_activation_count":0,
+    "execution_mode":"not_run","work_log_path":f"Production/Development/Tasks/{task_id}/{role}/work-log.md",
+    "base_document_destination":"Production/Development/base-documents/project-mapping-engineer",
+    "fixed_parameter_ids":[],"task_specific_parameter_ids":[],"not_applicable_reason":None
+   } for role in ROLE_IDS],
+   "parameter_reviews":parameter_reviews,"consultations":[],
+   "requirement_change_register":[],"affected_task_reconciliation":[],
+   "edge_change_log":[],
+   "contract_revalidation":{
+    "state":"not_required","triggering_contracts":[],"affected_task_ids":[],
+    "reason":None,"evidence":[]
+   },
+   "blocked_reason":None,"deferral":None
+  }
+  fence=chr(96)*3
+  lines=["# Task Status",*markdown_rows,STATUS_START,fence+"json",json.dumps(record,ensure_ascii=False,indent=2),fence,STATUS_END]
+  folder=root/"Production"/"Development"/"Tasks"/task_id
+  folder.mkdir(parents=True,exist_ok=True)
+  (folder/"task-status.md").write_text("\n".join(lines)+"\n",encoding="utf-8")
+  return graph,record,folder/"task-status.md",definitions
+
+ def test_schema12_complete_project_contract_passes(self):
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td); graph,record,status_path,_=self.make_fixture(root)
+   self.assertEqual(validate_graph(graph,root),[])
+
+ def test_schema12_requires_complete_task_inputs_and_outputs(self):
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td); graph,record,status_path,_=self.make_fixture(root)
+   record["task_definition"]["inputs"]=[]
+   write_status(root,record)
+   errors={x.code for x in validate_graph(graph,root)}
+   self.assertIn("MISSING_TASK_INPUTS",errors)
+
+ def test_schema12_requires_all_81_exact_parameter_checks(self):
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td); graph,record,status_path,_=self.make_fixture(root)
+   record["parameter_reviews"].pop()
+   write_status(root,record)
+   errors={x.code for x in validate_graph(graph,root)}
+   self.assertIn("FIXED_PARAMETER_SET_MISMATCH",errors)
+
+ def test_schema12_requires_attempt_summary_to_be_derived(self):
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td); graph,record,status_path,_=self.make_fixture(root)
+   record["execution_history"]=[{
+    "attempt_id":"WP-NEW-001-A001","started_at":"2026-11-27T10:00:00Z",
+    "ended_at":"2026-11-27T10:01:00Z","result":"partial",
+    "summary":"An attempt is pending verification.","changed_files":["output.md"],
+    "commit_sha":None,"commit_sha_reason":"The attempt has not been committed.",
+    "related_commits":[],"tests":[{
+     "name":"Exact quality command","command":"python -m unittest discover -s tests -v",
+     "result":"pending","environment":"CI","run_id":None,"url":None,
+     "note":"The workflow result has not been observed."
+    }],
+    "failure_details":None,"blocked_reason":None,"reopened_reason":None,
+    "contract_changes":[],"follow_up":"Record the CI result.",
+    "device_and_host_details_redacted":"Not applicable.",
+    "model_revision_and_sha256":"Not applicable.",
+    "pre_upgrade_post_upgrade_snapshot":"Not applicable."
+   }]
+   record["execution_summary"].update({
+    "attempt_count":1,"last_attempt_id":"WP-NEW-001-A001",
+    "last_attempt_result":"partial","changed_files":["output.md"]
+   })
+   write_status(root,record)
+   self.assertEqual(validate_graph(graph,root),[])
+   record["execution_summary"]["changed_files"]=[]
+   write_status(root,record)
+   errors={x.code for x in validate_graph(graph,root)}
+   self.assertIn("EXECUTION_SUMMARY_DERIVATION_MISMATCH",errors)
+
+ def test_schema12_requires_validated_edges_before_in_progress(self):
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td); graph,record,status_path,_=self.make_fixture(root,dependencies=["WP-PRE-001"])
+   graph={"tasks":[node("WP-PRE-001",status="not_started"),graph["tasks"][0]]}
+   positions,_=derive_execution_waves(graph)
+   record["execution_plan"].update(positions["WP-NEW-001"])
+   record["prerequisite_reviews"]=[{
+    "task_id":"WP-PRE-001","classification":"hard_dependency",
+    "validation_status":"unreviewed","rationale":"The required artifact has not yet been inspected.",
+    "evidence":[],"edge_type":"blocks","observed_predecessor_status":"not_started",
+    "required_artifact":"Approved shared contract.","consumer_reason":"The task consumes this contract.",
+    "reviewed_by":"senior-engineer","reviewed_at":"2026-11-27T10:00:00Z"
+   }]
+   write_status(root,record)
+   errors={x.code for x in validate_graph(graph,root)}
+   self.assertIn("UNVALIDATED_PREREQUISITE_BEFORE_START",errors)
+
