@@ -248,7 +248,7 @@ class Schema12ProjectParityTests(unittest.TestCase):
     prompt_lines.append(f"- {pid} — {check}")
   prompt.write_text("\n".join(prompt_lines)+"\n",encoding="utf-8")
   (root/"source.md").write_text("Approved source input.",encoding="utf-8")
-  graph={"tasks":[node(task_id,dependencies or [],"in_progress")]}
+  graph={"tasks":[*[node(dep,status="not_started") for dep in (dependencies or [])],node(task_id,dependencies or [],"in_progress")]}
   positions,_=derive_execution_waves(graph)
   parameter_reviews=[]
   markdown_rows=[]
@@ -393,7 +393,7 @@ class Schema12ProjectParityTests(unittest.TestCase):
  def test_schema12_requires_validated_edges_before_in_progress(self):
   with tempfile.TemporaryDirectory() as td:
    root=Path(td); graph,record,status_path,definitions=self.make_fixture(root,dependencies=["WP-PRE-001"])
-   graph={"tasks":[node("WP-PRE-001",status="not_started"),graph["tasks"][0]]}
+   graph=graph
    positions,_=derive_execution_waves(graph)
    record["execution_plan"].update(positions["WP-NEW-001"])
    record["prerequisite_reviews"]=[{
