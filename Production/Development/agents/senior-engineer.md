@@ -266,9 +266,9 @@ Never change a historical status automatically because a task appears in a new r
 
 ### Canonical record and derived reporting
 
-New task-status records use schema version `1.2` and include `source_baseline`, `execution_plan`, `requirement_change_register` and `affected_task_reconciliation`. All detailed information stays in the selected task's single task-status.md JSON block and its Markdown review tables. Do not create a second metadata sidecar or manually maintained duplicate counter file.
+New task-status records use schema version `1.3` and include `source_baseline`, `execution_plan`, `requirement_change_register` and `affected_task_reconciliation`. All detailed information stays in the selected task's single task-status.md JSON block and its Markdown review tables. Do not create a second metadata sidecar or manually maintained duplicate counter file.
 
-Existing schema 1.0 and 1.1 records remain immutable historical snapshots. Do not backfill fields or pretend a baseline/change review happened in the past. The graph guard supports schemas 1.0, 1.1 and 1.2; it uses the original SE-01…SE-07 baseline for schema 1.0, the schema 1.1 contract for schema 1.1, and the full current task-contract, parameter-audit and execution-ledger contract for new schema 1.2 records.
+Existing schema 1.0 and 1.1 records remain immutable historical snapshots. Do not backfill fields or pretend a baseline/change review happened in the past. The graph guard supports schemas 1.0, 1.1, 1.2 and 1.3; it uses the original SE-01…SE-07 baseline for schema 1.0, the schema 1.1 contract for schema 1.1, and the full current task-contract, parameter-audit and execution-ledger contract for new schema 1.3 records.
 
 ### Required order before any role activation
 
@@ -431,7 +431,17 @@ The dependency graph is intentionally NOT the task specification. The Senior Eng
 11. **Change reconciliation:** preserve the existing versioned change register and exactly one affected-task reconciliation record per affected task per change. Preserve baseline status and previous evidence; distinguish impact mapping from implementation revalidation; record direct/transitive impact, decision, any status transition and evidence. Derive all totals from canonical arrays.
 12. **Compatibility:** schema 1.0 and 1.1 files remain immutable historical records. New tasks use schema 1.2. Keep one JSON block inside task-status.md; do not create sidecar metadata, duplicate counters or task contract fields in the graph.
 
-### Schema 1.2 mapping from the project task-node model
+### Schema 1.3 execution-integrity additions
+
+- Preserve the exact minimal graph contract: one in_progress task maximum across the entire graph. The repository graph guard rejects multiple active tasks; readiness waves never authorize parallel task execution.
+- Every task_definition.inputs[].provider_task_ids entry must also be a direct depends_on prerequisite. Its edge must be a validated hard_dependency or contract_or_interface_dependency, never sequencing_only. A provider-backed input may be marked available only when the provider task is done and the input has inspectable source/evidence.
+- Before implementation, define task_definition.required_verification_gates[]. Give every gate a unique GATE-NNN ID, a kind (static_analysis, unit, integration, security, product_build, runtime, manual_acceptance or documentation), a measurable description and a ci_required boolean. Tie every recorded test/check to the matching gate ID and kind.
+- A task cannot become done unless the latest successful attempt passes every required verification gate. A CI-required gate needs the exact observed CI environment, run ID and HTTPS run URL; local success is not a substitute.
+- Schema 1.3 execution attempts form a SHA-256 hash chain. The first previous_attempt_hash is null; every later one equals the preceding attempt hash. Compute each attempt_hash from canonical UTF-8 JSON with sorted keys and compact separators, excluding only attempt_hash itself. Preserve chronological, non-overlapping attempt timestamps. Never edit or delete an earlier attempt; corrections are new attempts.
+- Production/Development/deferred-final-queue.json is the canonical ordered queue for every deferred_final graph task. The queue must contain each deferred task exactly once, match its task-status deferral metadata, and place every unfinished hard/contract prerequisite before its consumer. No non-deferred task may appear in the queue. The graph remains minimal; queue metadata stays outside graph nodes.
+
+Schema 1.0, 1.1 and 1.2 task records remain immutable. The 1.3 rules apply to new task records and do not retroactively invalidate older records. The repository-backed quality gate validates the queue, task providers, verification gates, attempt hash chain and serial execution constraint.
+### Schema 1.3 mapping from the project task-node model
 
 - `title`, `section`, `source_task_id`, `source_change_operation`, `affected_task_ids`, `description`, `implementation_focus`, `inputs`, `outputs`, `start_condition`, `acceptance`, and `status_fa` map to `task_definition` (`title` is stored separately from the task ID).
 - `acceptance_criteria`, `expected_output_paths`, `actual_output_paths`, `evidence`, `notes`, `execution_summary` and `execution_history` live in the corresponding task-status fields.

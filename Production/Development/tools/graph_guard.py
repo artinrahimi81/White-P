@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Validate White-P's minimal DAG and detailed per-task execution records."""
 from __future__ import annotations
-import argparse, json, re, sys
+import argparse, hashlib, json, re, sys
+from datetime import datetime
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
@@ -38,7 +39,8 @@ FIXED_PARAMETER_IDS={
  "project-mapping-engineer":[f"PM-{i:02d}" for i in range(1,8)],
 }
 LEGACY_FIXED_PARAMETER_IDS={**FIXED_PARAMETER_IDS,"senior-engineer":[f"SE-{i:02d}" for i in range(1,8)]}
-SUPPORTED_SCHEMA_VERSIONS={"1.0","1.1","1.2"}
+SUPPORTED_SCHEMA_VERSIONS={"1.0","1.1","1.2","1.3"}
+VERIFICATION_GATE_KINDS={"static_analysis","unit","integration","security","product_build","runtime","manual_acceptance","documentation"}
 SCHEDULING_MODES={"sequential_default","controlled_parallel"}
 CHANGE_REGISTER_STATES={"identified","impact_mapped","reconciliation_in_progress","accepted","rejected"}
 IMPACT_CLASSIFICATIONS={"direct","transitive","contract","behavioral","documentation","none"}
@@ -566,6 +568,99 @@ def validate_schema_12_record(task,by_id,record,markdown,root,out):
    out.append(Finding("ERROR","DONE_WITH_UNRESOLVED_CONTRACT_REVALIDATION",f"{ctx}: done task requires not_required or passed contract revalidation."))
 
 
+def validate_schema_13_record(task,by_id,record,markdown,root,out):
+ """Validate verification gates, provider edges and a tamper-evident attempt chain."""
+ tid=task["id"]; ctx=f"{tid} schema 1.3"
+ definition=record.get("task_definition") if isinstance(record.get("task_definition"),dict) else {}
+ gates=definition.get("required_verification_gates")
+ if not isinstance(gates,list) or not gates:
+  out.append(Finding("ERROR","MISSING_REQUIRED_VERIFICATION_GATES",f"{ctx}: required_verification_gates must be a non-empty array.")); gates=[]
+ gate_by_id={}
+ for gate in gates:
+  if not isinstance(gate,dict):
+   out.append(Finding("ERROR","INVALID_VERIFICATION_GATE",f"{ctx}: verification gates must be objects.")); continue
+  gid=gate.get("gate_id")
+  if not isinstance(gid,str) or re.fullmatch(r"GATE-\d{3}",gid) is None or gid in gate_by_id:
+   out.append(Finding("ERROR","INVALID_VERIFICATION_GATE_ID",f"{ctx}: invalid/duplicate gate ID {gid!r}.")); continue
+  gate_by_id[gid]=gate
+  if gate.get("kind") not in VERIFICATION_GATE_KINDS:
+   out.append(Finding("ERROR","INVALID_VERIFICATION_GATE_KIND",f"{ctx}: {gid} has unsupported kind."))
+  if not isinstance(gate.get("description"),str) or not gate["description"].strip():
+   out.append(Finding("ERROR","INCOMPLETE_VERIFICATION_GATE",f"{ctx}: {gid} needs a description."))
+  if not isinstance(gate.get("ci_required"),bool):
+   out.append(Finding("ERROR","INVALID_VERIFICATION_GATE_CI_POLICY",f"{ctx}: {gid}.ci_required must be boolean."))
+
+ # Every declared input producer must be a real direct prerequisite, not a sequence-only edge.
+ prereq_items=record.get("prerequisite_reviews",[])
+ reviews={x.get("task_id"):x for x in prereq_items if isinstance(x,dict)} if isinstance(prereq_items,list) else {}
+ for input_item in definition.get("inputs",[]) if isinstance(definition.get("inputs"),list) else []:
+  if not isinstance(input_item,dict): continue
+  iid=input_item.get("input_id")
+  providers=input_item.get("provider_task_ids",[])
+  for provider in providers if isinstance(providers,list) else []:
+   if not isinstance(provider,str) or provider not in task.get("depends_on",[]):
+    out.append(Finding("ERROR","INPUT_PROVIDER_NOT_DIRECT_PREREQUISITE",f"{ctx}: {iid!r} provider {provider!r} is not a direct graph prerequisite.")); continue
+   review=reviews.get(provider)
+   if isinstance(review,dict) and review.get("classification")=="sequencing_only":
+    out.append(Finding("ERROR","INPUT_PROVIDER_IS_SEQUENCING_ONLY",f"{ctx}: {iid!r} consumes {provider!r}, but its edge is classified sequencing_only."))
+   if task.get("status") in {"in_progress","done"} and (not isinstance(review,dict) or review.get("validation_status")!="validated"):
+    out.append(Finding("ERROR","INPUT_PROVIDER_EDGE_NOT_VALIDATED",f"{ctx}: {iid!r} provider edge {provider!r} must be validated before execution."))
+   provider_node=by_id.get(provider)
+   if input_item.get("availability")=="available" and isinstance(provider_node,dict) and provider_node.get("status")!="done":
+    out.append(Finding("ERROR","AVAILABLE_INPUT_PROVIDER_NOT_DONE",f"{ctx}: {iid!r} claims provider {provider!r} is available while it is {provider_node.get("status")!r}."))
+
+ history=record.get("execution_history",[])
+ if not isinstance(history,list): history=[]
+ previous_hash=None; previous_end=None; latest_passes=set()
+ for index,attempt in enumerate(history):
+  if not isinstance(attempt,dict): continue
+  aid=attempt.get("attempt_id")
+  if attempt.get("previous_attempt_hash")!=previous_hash:
+   out.append(Finding("ERROR","ATTEMPT_HASH_CHAIN_LINK_MISMATCH",f"{ctx}: attempt {aid!r} does not reference the preceding attempt hash."))
+  supplied_hash=attempt.get("attempt_hash")
+  if not isinstance(supplied_hash,str) or re.fullmatch(r"[0-9a-f]{64}",supplied_hash) is None:
+   out.append(Finding("ERROR","INVALID_ATTEMPT_HASH",f"{ctx}: attempt {aid!r} needs a 64-character SHA-256 attempt_hash."))
+  else:
+   payload={key:value for key,value in attempt.items() if key!="attempt_hash"}
+   canonical=json.dumps(payload,ensure_ascii=False,sort_keys=True,separators=(",",":"))
+   expected_hash=hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+   if supplied_hash!=expected_hash:
+    out.append(Finding("ERROR","ATTEMPT_HASH_MISMATCH",f"{ctx}: attempt {aid!r} hash does not match its canonical record."))
+  started=attempt.get("started_at"); ended=attempt.get("ended_at")
+  try:
+   start_dt=datetime.fromisoformat(started.replace("Z","+00:00"))
+   end_dt=datetime.fromisoformat(ended.replace("Z","+00:00"))
+   if start_dt.tzinfo is None or end_dt.tzinfo is None or end_dt<=start_dt:
+    raise ValueError("attempt end must be after start and both timestamps must include a timezone")
+   if previous_end is not None and start_dt<previous_end:
+    out.append(Finding("ERROR","ATTEMPT_HISTORY_NOT_CHRONOLOGICAL",f"{ctx}: attempt {aid!r} starts before the preceding attempt ended."))
+   previous_end=end_dt
+  except (AttributeError,TypeError,ValueError):
+   out.append(Finding("ERROR","INVALID_ATTEMPT_TIME_RANGE",f"{ctx}: attempt {aid!r} needs valid timezone-aware start/end timestamps with end after start."))
+  passed_for_attempt=set()
+  tests=attempt.get("tests",[])
+  if not isinstance(tests,list): tests=[]
+  for test in tests:
+   if not isinstance(test,dict): continue
+   gid=test.get("gate_id")
+   if not isinstance(gid,str) or gid not in gate_by_id:
+    out.append(Finding("ERROR","TEST_REFERENCES_UNKNOWN_VERIFICATION_GATE",f"{ctx}: attempt {aid!r} references unknown gate {gid!r}.")); continue
+   gate=gate_by_id[gid]
+   if test.get("kind")!=gate.get("kind"):
+    out.append(Finding("ERROR","TEST_VERIFICATION_GATE_KIND_MISMATCH",f"{ctx}: attempt {aid!r} test kind differs from gate {gid!r}."))
+   if test.get("result")=="passed":
+    passed_for_attempt.add(gid)
+    if gate.get("ci_required") is True:
+     if test.get("environment")!="CI" or test.get("run_id") is None or not isinstance(test.get("url"),str) or not test["url"].startswith("https://"):
+      out.append(Finding("ERROR","CI_GATE_WITHOUT_RUN_EVIDENCE",f"{ctx}: passed CI-required gate {gid!r} needs environment=CI, run_id and an HTTPS run URL."))
+  if index==len(history)-1: latest_passes=passed_for_attempt
+  previous_hash=supplied_hash if isinstance(supplied_hash,str) else None
+ if task.get("status")=="done":
+  for gid in gate_by_id:
+   if gid not in latest_passes:
+    out.append(Finding("ERROR","DONE_WITHOUT_REQUIRED_VERIFICATION_GATE",f"{ctx}: latest attempt has no passing result for required gate {gid!r}."))
+ return out
+
 def validate_record(task,by_id,record,markdown,root,out,plan_by_id):
  tid=task["id"]; ctx=f"{tid} task-status"
  schema_version=record.get("schema_version")
@@ -759,8 +854,10 @@ def validate_record(task,by_id,record,markdown,root,out,plan_by_id):
  if code_outputs and task["status"]=="done" and not any(isinstance(x,str) and (x.startswith("tests/") or x.startswith("test/")) for x in evidence):
   out.append(Finding("ERROR","DONE_WITHOUT_TEST_SOURCE_EVIDENCE",f"{ctx}: code outputs require test source evidence under tests/ or test/."))
 
- if schema_version=="1.2":
+ if schema_version in {"1.2","1.3"}:
   validate_schema_12_record(task,by_id,record,markdown,root,out)
+ if schema_version=="1.3":
+  validate_schema_13_record(task,by_id,record,markdown,root,out)
 
 
 
@@ -935,11 +1032,85 @@ def validate_repository_planning_contract(root:Path,graph_by_id:dict[str,Any],ou
  return catalog_titles
 
 
+DEFERRED_FINAL_QUEUE_PATH=Path("Production")/"Development"/"deferred-final-queue.json"
+
+def validate_deferred_final_queue(root:Path,graph_by_id:dict[str,Any],out:list[Finding]):
+ """Keep final-stage external acceptance tasks in one explicit, ordered queue."""
+ path=root/DEFERRED_FINAL_QUEUE_PATH
+ if not path.is_file():
+  out.append(Finding("ERROR","MISSING_DEFERRED_FINAL_QUEUE",f"Required final-stage queue is missing: {DEFERRED_FINAL_QUEUE_PATH.as_posix()}.")); return
+ try: data=json.loads(path.read_text(encoding="utf-8"))
+ except (OSError,UnicodeError,json.JSONDecodeError) as exc:
+  out.append(Finding("ERROR","DEFERRED_FINAL_QUEUE_READ",f"Cannot read deferred-final queue: {exc}.")); return
+ if not isinstance(data,dict) or set(data)!={"schema_version","policy","queue"} or data.get("schema_version")!="1.0":
+  out.append(Finding("ERROR","INVALID_DEFERRED_FINAL_QUEUE_SHAPE","Queue must be schema 1.0 with exactly schema_version, policy and queue.")); return
+ policy=data.get("policy")
+ if not isinstance(policy,dict) or not isinstance(policy.get("purpose"),str) or not policy["purpose"].strip() or not isinstance(policy.get("rules"),list) or not policy["rules"] or any(not isinstance(x,str) or not x.strip() for x in policy["rules"]):
+  out.append(Finding("ERROR","INVALID_DEFERRED_FINAL_QUEUE_POLICY","Queue policy needs a purpose and non-empty textual rules."))
+ queue=data.get("queue")
+ if not isinstance(queue,list):
+  out.append(Finding("ERROR","INVALID_DEFERRED_FINAL_QUEUE_ITEMS","queue must be an array.")); queue=[]
+ expected={tid for tid,node in graph_by_id.items() if node.get("status")=="deferred_final"}
+ seen={}; queue_positions={}
+ for index,item in enumerate(queue,1):
+  if not isinstance(item,dict):
+   out.append(Finding("ERROR","INVALID_DEFERRED_FINAL_QUEUE_ITEM",f"Queue position {index} must be an object.")); continue
+  tid=item.get("task_id")
+  if set(item)!={"task_id","position","reason","start_condition","final_stage"}:
+   out.append(Finding("ERROR","INVALID_DEFERRED_FINAL_QUEUE_ITEM",f"Queue position {index} has an unsupported field set."))
+  if not isinstance(tid,str) or tid in seen:
+   out.append(Finding("ERROR","DUPLICATE_DEFERRED_FINAL_QUEUE_TASK",f"Queue position {index} has invalid/duplicate task ID {tid!r}.")); continue
+  seen[tid]=item; queue_positions[tid]=index
+  if tid not in graph_by_id:
+   out.append(Finding("ERROR","UNKNOWN_DEFERRED_FINAL_QUEUE_TASK",f"{tid} is not in the dependency graph.")); continue
+  if graph_by_id[tid].get("status")!="deferred_final":
+   out.append(Finding("ERROR","NON_DEFERRED_TASK_IN_FINAL_QUEUE",f"{tid} is not deferred_final."))
+  if item.get("position")!=index:
+   out.append(Finding("ERROR","DEFERRED_FINAL_QUEUE_POSITION_MISMATCH",f"{tid} position must be {index}."))
+  for field in ("reason","start_condition","final_stage"):
+   if not isinstance(item.get(field),str) or not item[field].strip():
+    out.append(Finding("ERROR","INCOMPLETE_DEFERRED_FINAL_QUEUE_ITEM",f"{tid} is missing {field}."))
+  status_path=root/TASK_WORKSPACE_ROOT/tid/"task-status.md"
+  if not status_path.is_file():
+   out.append(Finding("ERROR","DEFERRED_QUEUE_TASK_STATUS_MISSING",f"{tid} has no task-status.md.")); continue
+  try: record=extract_status_record(status_path.read_text(encoding="utf-8"))
+  except (OSError,UnicodeError,ValueError,json.JSONDecodeError) as exc:
+   out.append(Finding("ERROR","DEFERRED_QUEUE_TASK_STATUS_INVALID",f"{tid}: {exc}.")); continue
+  d=record.get("deferral")
+  if not isinstance(d,dict) or any(d.get(field)!=item.get(field) for field in ("reason","start_condition","final_stage")):
+   out.append(Finding("ERROR","DEFERRED_QUEUE_METADATA_MISMATCH",f"{tid} queue metadata differs from task-status deferral record."))
+ for tid in sorted(expected-set(seen)):
+  out.append(Finding("ERROR","DEFERRED_FINAL_TASK_MISSING_FROM_QUEUE",f"{tid} is deferred_final but is not queued."))
+ for tid in sorted(set(seen)-expected):
+  if tid not in graph_by_id: continue
+  out.append(Finding("ERROR","DEFERRED_FINAL_QUEUE_MEMBERSHIP_MISMATCH",f"{tid} is not a deferred_final task."))
+ for tid,item in seen.items():
+  node=graph_by_id.get(tid)
+  if node is None: continue
+  status_path=root/TASK_WORKSPACE_ROOT/tid/"task-status.md"
+  try: record=extract_status_record(status_path.read_text(encoding="utf-8"))
+  except (OSError,UnicodeError,ValueError,json.JSONDecodeError): continue
+  reviews={x.get("task_id"):x for x in record.get("prerequisite_reviews",[]) if isinstance(x,dict)}
+  for pred in node.get("depends_on",[]):
+   if not isinstance(pred,str): continue
+   predecessor=graph_by_id.get(pred); review=reviews.get(pred)
+   if predecessor is None or not isinstance(review,dict): continue
+   classification=review.get("classification"); state=review.get("validation_status")
+   if state!="validated" or classification in {"unreviewed",None}:
+    out.append(Finding("ERROR","DEFERRED_QUEUE_UNVALIDATED_PREREQUISITE",f"{tid} cannot enter the final queue with unvalidated prerequisite {pred}.")); continue
+   if classification in {"hard_dependency","contract_or_interface_dependency"} and predecessor.get("status")!="done":
+    pred_position=queue_positions.get(pred)
+    if predecessor.get("status")!="deferred_final" or pred_position is None or pred_position>=queue_positions.get(tid,10**9):
+     out.append(Finding("ERROR","DEFERRED_QUEUE_PREREQUISITE_ORDER",f"{tid} must follow a completed or earlier deferred prerequisite {pred}."))
+ return out
+
 def validate_graph(graph:Any,repo_root:Path|None=None)->list[Finding]:
  out=[]
  if not isinstance(graph,dict) or set(graph)!={"tasks"} or not isinstance(graph.get("tasks"),list):
   return [Finding("ERROR","INVALID_GRAPH_DOCUMENT","graph must contain only a tasks array.")]
  tasks=graph["tasks"]; ids=[]; by_id={}
+ active_tasks=[x.get("id") for x in tasks if isinstance(x,dict) and x.get("status")=="in_progress"]
+ if len(active_tasks)>1: out.append(Finding("ERROR","MULTIPLE_IN_PROGRESS_TASKS",f"White-P serial execution permits one active task; found {active_tasks}."))
  for index,node in enumerate(tasks):
   if not isinstance(node,dict): out.append(Finding("ERROR","INVALID_NODE",f"Task index {index} is not an object.")); continue
   if set(node)!={"id","depends_on","status"}: out.append(Finding("ERROR","INVALID_NODE_SHAPE",f"Task index {index} must have exactly id, depends_on, status.")); continue
@@ -969,6 +1140,7 @@ def validate_graph(graph:Any,repo_root:Path|None=None)->list[Finding]:
  except ValueError: plan_by_id,waves={},[]
  if repo_root is not None:
   resolved_root=repo_root.resolve()
+  validate_deferred_final_queue(resolved_root,by_id,out)
   catalog_titles=validate_repository_planning_contract(resolved_root,by_id,out)
   out.extend(validate_parameter_registry(resolved_root))
   for tid,node in by_id.items():
@@ -977,7 +1149,7 @@ def validate_graph(graph:Any,repo_root:Path|None=None)->list[Finding]:
     if not status_path.is_file(): out.append(Finding("ERROR","MISSING_TASK_STATUS",f"{tid}: task-status.md is required.")); continue
     try: markdown=status_path.read_text(encoding="utf-8"); record=extract_status_record(markdown)
     except (OSError,UnicodeError,ValueError,json.JSONDecodeError) as exc: out.append(Finding("ERROR","TASK_STATUS_READ",f"{tid}: {exc}.")); continue
-    if record.get("schema_version")=="1.2":
+    if record.get("schema_version") in {"1.2","1.3"}:
      definition=record.get("task_definition")
      actual_title=definition.get("title") if isinstance(definition,dict) else None
      expected_title=catalog_titles.get(tid)

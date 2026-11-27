@@ -1,8 +1,9 @@
-import json,sys,tempfile,unittest
+import hashlib,json,sys,tempfile,unittest
+
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
-from tools.graph_guard import FIXED_PARAMETER_IDS,ROLE_IDS,STATUS_END,STATUS_START,derive_execution_waves,extract_status_record,fixed_ids_from_prompt,fixed_parameter_definitions_from_prompt,valid_task_parameter_id,validate_graph,validate_parameter_registry,validate_repository_planning_contract
+from tools.graph_guard import FIXED_PARAMETER_IDS,ROLE_IDS,STATUS_END,STATUS_START,derive_execution_waves,extract_status_record,fixed_ids_from_prompt,fixed_parameter_definitions_from_prompt,valid_task_parameter_id,validate_deferred_final_queue,validate_graph,validate_parameter_registry,validate_repository_planning_contract
 
 def node(tid,deps=None,status="not_started"): return {"id":tid,"depends_on":deps or [],"status":status}
 def graph_fixture(): return {"tasks":[node("WP-INIT-001"),node("WP-INIT-002",["WP-INIT-001"])]}
@@ -56,6 +57,9 @@ class CentralParameterRegistryTests(unittest.TestCase):
 
 class GraphStructureTests(unittest.TestCase):
  def test_valid_graph(self): self.assertEqual(validate_graph(graph_fixture()),[])
+ def test_only_one_task_may_be_in_progress(self):
+  graph={"tasks":[node("WP-A",status="in_progress"),node("WP-B",status="in_progress")]}
+  self.assertIn("MULTIPLE_IN_PROGRESS_TASKS",{x.code for x in validate_graph(graph)})
  def test_only_tasks_root_key(self):
   g=graph_fixture(); g["metadata"]={}
   self.assertIn("INVALID_GRAPH_DOCUMENT",{x.code for x in validate_graph(g)})
@@ -449,6 +453,95 @@ class Schema12ProjectParityTests(unittest.TestCase):
    self.assertEqual(errors,set())
 
 
+  def promote_to_schema13(self,record):
+   record["schema_version"]="1.3"
+   record["task_definition"]["required_verification_gates"]=[{"gate_id":"GATE-001","kind":"unit","description":"Unit regression suite.","ci_required":False}]
+   return record
+
+  def seal_attempt_history(self,record):
+   previous=None
+   for attempt in record["execution_history"]:
+    attempt["previous_attempt_hash"]=previous
+    payload={key:value for key,value in attempt.items() if key!="attempt_hash"}
+    canonical=json.dumps(payload,ensure_ascii=False,sort_keys=True,separators=(",",":"))
+    digest=hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    attempt["attempt_hash"]=digest; previous=digest
+
+  def sample_attempt(self,result="partial",started="2026-11-27T10:00:00Z",ended="2026-11-27T10:01:00Z",tests=None):
+   return {"attempt_id":"WP-NEW-001-A001","started_at":started,"ended_at":ended,"result":result,
+    "summary":"Recorded an auditable execution attempt.","changed_files":[],"commit_sha":None,
+    "commit_sha_reason":"No source commit was created in this attempt.","related_commits":[],"tests":tests or [],
+    "failure_details":None,"blocked_reason":None,"reopened_reason":None,"contract_changes":[],"follow_up":"Continue after verification.",
+    "device_and_host_details_redacted":"Not applicable.","model_revision_and_sha256":"Not applicable.","pre_upgrade_post_upgrade_snapshot":"Not applicable."}
+
+  def test_schema13_requires_explicit_verification_gate_contract(self):
+   with tempfile.TemporaryDirectory() as td:
+    root=Path(td); graph,record,_,definitions=self.make_fixture(root)
+    self.promote_to_schema13(record); record["task_definition"].pop("required_verification_gates")
+    self.save_fixture_status(root,record,definitions)
+    errors={x.code for x in validate_with_repository_fixture(graph,root)}
+    self.assertIn("MISSING_REQUIRED_VERIFICATION_GATES",errors)
+
+  def test_schema13_attempt_hash_chain_detects_record_tampering(self):
+   with tempfile.TemporaryDirectory() as td:
+    root=Path(td); graph,record,_,definitions=self.make_fixture(root); self.promote_to_schema13(record)
+    record["execution_history"]=[self.sample_attempt()]
+    record["execution_summary"].update({"attempt_count":1,"failed_attempt_count":0,"last_attempt_id":"WP-NEW-001-A001",
+     "last_attempt_result":"partial","changed_files":[],"related_commits":[],"tests_passed":[],"tests_failed":[],"blocked_reason":None,"reopened_reason":None})
+    self.seal_attempt_history(record); self.save_fixture_status(root,record,definitions)
+    self.assertEqual(validate_with_repository_fixture(graph,root),[])
+    record["execution_history"][0]["summary"]="Silently rewritten historical attempt."
+    self.save_fixture_status(root,record,definitions)
+    errors={x.code for x in validate_with_repository_fixture(graph,root)}
+    self.assertIn("ATTEMPT_HASH_MISMATCH",errors)
+
+  def test_schema13_attempt_history_must_be_chronological(self):
+   with tempfile.TemporaryDirectory() as td:
+    root=Path(td); graph,record,_,definitions=self.make_fixture(root); self.promote_to_schema13(record)
+    first=self.sample_attempt(); second=self.sample_attempt(started="2026-11-27T09:59:00Z",ended="2026-11-27T10:02:00Z")
+    second["attempt_id"]="WP-NEW-001-A002"; record["execution_history"]=[first,second]
+    record["execution_summary"].update({"attempt_count":2,"failed_attempt_count":0,"last_attempt_id":"WP-NEW-001-A002",
+     "last_attempt_result":"partial","changed_files":[],"related_commits":[],"tests_passed":[],"tests_failed":[],"blocked_reason":None,"reopened_reason":None})
+    self.seal_attempt_history(record); self.save_fixture_status(root,record,definitions)
+    errors={x.code for x in validate_with_repository_fixture(graph,root)}
+    self.assertIn("ATTEMPT_HISTORY_NOT_CHRONOLOGICAL",errors)
+
+  def test_schema13_data_provider_must_be_a_real_nonsequencing_prerequisite(self):
+   with tempfile.TemporaryDirectory() as td:
+    root=Path(td); graph,record,_,definitions=self.make_fixture(root,dependencies=["WP-PRE-001"])
+    graph["tasks"][0]["status"]="done"; self.promote_to_schema13(record)
+    record["prerequisite_reviews"]=[{"task_id":"WP-PRE-001","classification":"sequencing_only","validation_status":"validated",
+     "rationale":"The predecessor is retained only for order.","evidence":["source.md"],"edge_type":"blocks",
+     "observed_predecessor_status":"done","required_artifact":"No artifact is consumed.","consumer_reason":"Not consumed.",
+     "reviewed_by":"senior-engineer","reviewed_at":"2026-11-27T10:00:00Z"}]
+    record["task_definition"]["inputs"][0]["provider_task_ids"]=["WP-PRE-001"]
+    record["task_definition"]["inputs"][0]["availability"]="available"
+    self.save_fixture_status(root,record,definitions)
+    errors={x.code for x in validate_with_repository_fixture(graph,root)}
+    self.assertIn("INPUT_PROVIDER_IS_SEQUENCING_ONLY",errors)
+
+  def test_schema13_provider_must_be_direct_prerequisite(self):
+   with tempfile.TemporaryDirectory() as td:
+    root=Path(td); graph,record,_,definitions=self.make_fixture(root); self.promote_to_schema13(record)
+    record["task_definition"]["inputs"][0]["provider_task_ids"]=["WP-UNLINKED-001"]
+    self.save_fixture_status(root,record,definitions)
+    errors={x.code for x in validate_with_repository_fixture(graph,root)}
+    self.assertIn("INPUT_PROVIDER_NOT_DIRECT_PREREQUISITE",errors)
+
+  def test_schema13_ci_required_gate_needs_exact_run_evidence(self):
+   with tempfile.TemporaryDirectory() as td:
+    root=Path(td); graph,record,_,definitions=self.make_fixture(root); self.promote_to_schema13(record)
+    record["task_definition"]["required_verification_gates"][0]["ci_required"]=True
+    test={"name":"Unit CI","command":"python -m unittest -v","result":"passed","environment":"local",
+     "run_id":None,"url":None,"note":"Local run only.","gate_id":"GATE-001","kind":"unit"}
+    record["execution_history"]=[self.sample_attempt(tests=[test])]
+    record["execution_summary"].update({"attempt_count":1,"failed_attempt_count":0,"last_attempt_id":"WP-NEW-001-A001",
+     "last_attempt_result":"partial","changed_files":[],"related_commits":[],"tests_passed":["python -m unittest -v"],"tests_failed":[],
+     "blocked_reason":None,"reopened_reason":None})
+    self.seal_attempt_history(record); self.save_fixture_status(root,record,definitions)
+    errors={x.code for x in validate_with_repository_fixture(graph,root)}
+    self.assertIn("CI_GATE_WITHOUT_RUN_EVIDENCE",errors)
+
   def test_schema12_task_title_must_match_catalog(self):
    with tempfile.TemporaryDirectory() as td:
     root=Path(td); graph,record,status_path,definitions=self.make_fixture(root)
@@ -472,6 +565,8 @@ class PlanningArtifactContractTests(unittest.TestCase):
    "## Parent-to-execution-child roll-up register","| Parent | Children | Count |","|---|---|---:|",
    "| WP-ARCH-002 | WP-ARCH-007 | 1 |",""]
   (dev/"task-catalog.md").write_text("\n".join(catalog),encoding="utf-8")
+ queue_path=dev/"deferred-final-queue.json"
+ queue_path.write_text(json.dumps({"schema_version":"1.0","policy":{"purpose":"Test fixture final-stage queue.","rules":["Only deferred_final tasks appear in the queue."]},"queue":[]},ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
   doc="""# Fixture
 
 ## WP-ARCH-002 — Intermediate parent package
@@ -575,5 +670,39 @@ def validate_with_repository_fixture(graph,root):
  path=root/"Production"/"Development"/"task-catalog.md"
  if not path.is_file(): write_minimal_repository_contract(root,graph)
  return validate_graph(graph,root)
+
+class DeferredFinalQueueTests(unittest.TestCase):
+ def write_queue(self,root,graph,order):
+  dev=root/"Production"/"Development"; tasks_root=dev/"Tasks"; node_by_id={x["id"]:x for x in graph["tasks"]}; items=[]
+  for index,tid in enumerate(order,1):
+   record={"schema_version":"1.2","task_id":tid,"graph_status":"deferred_final",
+    "deferral":{"reason":f"External acceptance for {tid}.","start_condition":f"Prerequisites for {tid} are ready.","final_stage":"Final operational acceptance."},"prerequisite_reviews":[]}
+   for pred in node_by_id[tid].get("depends_on",[]):
+    record["prerequisite_reviews"].append({"task_id":pred,"classification":"hard_dependency","validation_status":"validated",
+     "rationale":"The deferred task consumes the predecessor output.","evidence":["evidence.md"]})
+   folder=tasks_root/tid; folder.mkdir(parents=True,exist_ok=True); write_status(root,record)
+   items.append({"task_id":tid,"position":index,**record["deferral"]})
+  queue={"schema_version":"1.0","policy":{"purpose":"Run external acceptance after ordinary implementation.","rules":["Never bypass an unreviewed, hard or contract/interface dependency."]},"queue":items}
+  (dev/"deferred-final-queue.json").write_text(json.dumps(queue,ensure_ascii=False,indent=2),encoding="utf-8")
+
+ def test_empty_queue_is_valid_when_no_tasks_are_deferred(self):
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td); graph={"tasks":[node("WP-A")]}; dev=root/"Production"/"Development"; dev.mkdir(parents=True)
+   (dev/"deferred-final-queue.json").write_text(json.dumps({"schema_version":"1.0","policy":{"purpose":"Final gates.","rules":["Preserve order."]},"queue":[]}),encoding="utf-8")
+   findings=[]; validate_deferred_final_queue(root,{x["id"]:x for x in graph["tasks"]},findings); self.assertEqual(findings,[])
+
+ def test_every_deferred_task_must_appear_in_queue(self):
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td); graph={"tasks":[node("WP-A",status="deferred_final")]}; dev=root/"Production"/"Development"; dev.mkdir(parents=True)
+   (dev/"deferred-final-queue.json").write_text(json.dumps({"schema_version":"1.0","policy":{"purpose":"Final gates.","rules":["Preserve order."]},"queue":[]}),encoding="utf-8")
+   findings=[]; validate_deferred_final_queue(root,{x["id"]:x for x in graph["tasks"]},findings)
+   self.assertIn("DEFERRED_FINAL_TASK_MISSING_FROM_QUEUE",{x.code for x in findings})
+
+ def test_hard_deferred_prerequisite_must_be_earlier_in_queue(self):
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td); graph={"tasks":[node("WP-A",status="deferred_final"),node("WP-B",["WP-A"],"deferred_final")]}
+   self.write_queue(root,graph,["WP-B","WP-A"]); findings=[]
+   validate_deferred_final_queue(root,{x["id"]:x for x in graph["tasks"]},findings)
+   self.assertIn("DEFERRED_QUEUE_PREREQUISITE_ORDER",{x.code for x in findings})
 
 if __name__=="__main__": unittest.main(verbosity=2)

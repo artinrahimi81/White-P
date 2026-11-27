@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "policy": {
+    "purpose": "Separate external operational acceptance from ordinary implementation so missing production infrastructure cannot block normal development.",
+    "rules": [
+      "Every graph task with status deferred_final appears exactly once in this queue; no other task appears.",
+      "Keep queue order explicit and stable. Do not infer readiness from list position alone.",
+      "A deferred task may start only when its start_condition is met and every hard or contract/interface prerequisite is done or appears earlier in this queue.",
+      "Every incoming prerequisite must be validated; never bypass an unreviewed or disputed edge.",
+      "Queue reason, start_condition and final_stage must exactly match the task-status deferral record.",
+      "Deferred tasks remain incomplete and are excluded from completed-task counts."
+    ]
+  },
+  "queue": []
+}

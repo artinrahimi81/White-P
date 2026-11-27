@@ -372,6 +372,10 @@ Append one row for every attempt, including failures, partial work, blocked work
 
 The execution summary must exactly match the history: attempt_count, failed_attempt_count, tests_passed and tests_failed. A task may be done only with a succeeded attempt and at least one passing, recorded verification.
 
+For schema 1.3, required_verification_gates is mandatory. Each gate has a unique GATE-NNN ID, a kind (static_analysis, unit, integration, security, product_build, runtime, manual_acceptance or documentation), a concrete description and a ci_required boolean. Every attempt test record must name its gate_id and matching kind. A done task must pass every required gate in its latest successful attempt. When ci_required is true, record environment=CI, a run ID and an HTTPS workflow URL; a local result cannot substitute for a required CI gate.
+
+Each schema 1.3 attempt also carries previous_attempt_hash and attempt_hash. The first attempt uses a null previous hash; each later attempt points to the prior attempt hash. attempt_hash is SHA-256 over canonical UTF-8 JSON of the complete attempt object excluding only attempt_hash, using sorted keys and compact separators. Append attempts; never edit or remove an earlier attempt. The Git commit remains the external history anchor; the hash chain detects accidental or unreviewed edits within the current ledger.
+
 ## 13. Contract revalidation and external deferral
 
 **Contract revalidation**
@@ -403,7 +407,7 @@ The ten role entries below are mandatory. Update each entry's state, activation 
 <!-- WHITEP_TASK_STATUS_RECORD_START -->
 ```json
 {
-  "schema_version": "1.2",
+  "schema_version": "1.3",
   "task_id": "<TASK_ID>",
   "graph_status": "<not_started|in_progress|done|blocked|deferred_final>",
   "source_baseline": {
@@ -601,6 +605,14 @@ The ten role entries below are mandatory. Update each entry's state, activation 
         "actual_paths": [],
         "evidence": [],
         "not_applicable_reason": null
+      }
+    ],
+    "required_verification_gates": [
+      {
+        "gate_id": "GATE-001",
+        "kind": "unit",
+        "description": "<EXACT_VERIFICATION_GATE_AND_SUCCESS_CONDITION>",
+        "ci_required": true
       }
     ],
     "start_condition": "<ALL_EXPLICIT_START_CONDITIONS>",
