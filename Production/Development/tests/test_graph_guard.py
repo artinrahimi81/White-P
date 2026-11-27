@@ -565,8 +565,8 @@ class PlanningArtifactContractTests(unittest.TestCase):
    "## Parent-to-execution-child roll-up register","| Parent | Children | Count |","|---|---|---:|",
    "| WP-ARCH-002 | WP-ARCH-007 | 1 |",""]
   (dev/"task-catalog.md").write_text("\n".join(catalog),encoding="utf-8")
- queue_path=dev/"deferred-final-queue.json"
- queue_path.write_text(json.dumps({"schema_version":"1.0","policy":{"purpose":"Test fixture final-stage queue.","rules":["Only deferred_final tasks appear in the queue."]},"queue":[]},ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+  queue_path=dev/"deferred-final-queue.json"
+  queue_path.write_text(json.dumps({"schema_version":"1.0","policy":{"purpose":"Test fixture final-stage queue.","rules":["Only deferred_final tasks appear in the queue."]},"queue":[]},ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
   doc="""# Fixture
 
 ## WP-ARCH-002 — Intermediate parent package
@@ -665,6 +665,13 @@ def write_minimal_repository_contract(root,graph):
  catalog=["# Fixture catalog",*headings,"","## Execution-level work breakdown files",
           "","## Parent-to-execution-child roll-up register",""]
  (dev/"task-catalog.md").write_text("\n".join(catalog),encoding="utf-8")
+ queue_path=dev/"deferred-final-queue.json"
+ if not queue_path.exists():
+  queue_path.write_text(json.dumps({
+   "schema_version":"1.0",
+   "policy":{"purpose":"Test-only empty final-stage queue.","rules":["Every deferred task must be represented exactly once."]},
+   "queue":[]
+  },ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
 
 def validate_with_repository_fixture(graph,root):
  path=root/"Production"/"Development"/"task-catalog.md"

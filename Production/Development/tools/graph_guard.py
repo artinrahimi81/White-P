@@ -607,7 +607,7 @@ def validate_schema_13_record(task,by_id,record,markdown,root,out):
     out.append(Finding("ERROR","INPUT_PROVIDER_EDGE_NOT_VALIDATED",f"{ctx}: {iid!r} provider edge {provider!r} must be validated before execution."))
    provider_node=by_id.get(provider)
    if input_item.get("availability")=="available" and isinstance(provider_node,dict) and provider_node.get("status")!="done":
-    out.append(Finding("ERROR","AVAILABLE_INPUT_PROVIDER_NOT_DONE",f"{ctx}: {iid!r} claims provider {provider!r} is available while it is {provider_node.get("status")!r}."))
+    out.append(Finding("ERROR","AVAILABLE_INPUT_PROVIDER_NOT_DONE",f"{ctx}: {iid!r} claims provider {provider!r} is available while it is {provider_node.get('status')!r}."))
 
  history=record.get("execution_history",[])
  if not isinstance(history,list): history=[]
@@ -665,7 +665,7 @@ def validate_record(task,by_id,record,markdown,root,out,plan_by_id):
  tid=task["id"]; ctx=f"{tid} task-status"
  schema_version=record.get("schema_version")
  if schema_version not in SUPPORTED_SCHEMA_VERSIONS: out.append(Finding("ERROR","STATUS_SCHEMA_VERSION",f"{ctx}: schema_version must be one of {sorted(SUPPORTED_SCHEMA_VERSIONS)}."))
- if schema_version in {"1.1","1.2"}: validate_schema_11_record(task,by_id,record,plan_by_id,root,out,ctx)
+ if schema_version in {"1.1","1.2","1.3"}: validate_schema_11_record(task,by_id,record,plan_by_id,root,out,ctx)
  if record.get("task_id")!=tid: out.append(Finding("ERROR","STATUS_TASK_ID_MISMATCH",f"{ctx}: record task_id differs from graph."))
  if record.get("graph_status")!=task.get("status"): out.append(Finding("ERROR","STATUS_GRAPH_STATE_MISMATCH",f"{ctx}: record graph_status differs from graph."))
 
