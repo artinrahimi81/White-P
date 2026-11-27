@@ -415,7 +415,7 @@ The dependency graph is intentionally NOT the task specification. The Senior Eng
 
 ### Schema 1.2 mapping from the project task-node model
 
-- `title`, `section`, `source_task_id`, `source_change_operation`, `affected_task_ids`, `description`, `implementation_focus`, `inputs`, `outputs`, `start_condition`, `acceptance`, and `status_fa` map to `task_definition`.
+- `title`, `section`, `source_task_id`, `source_change_operation`, `affected_task_ids`, `description`, `implementation_focus`, `inputs`, `outputs`, `start_condition`, `acceptance`, and `status_fa` map to `task_definition` (`title` is stored separately from the task ID).
 - `acceptance_criteria`, `expected_output_paths`, `actual_output_paths`, `evidence`, `notes`, `execution_summary` and `execution_history` live in the corresponding task-status fields.
 - `depends_on` remains only a direct prerequisite ID array in the graph. Edge type/classification/validation/rationale/evidence belong in the consumer task-status `prerequisite_reviews[]`.
 - A graph task node remains exactly `{ "id": "...", "depends_on": [], "status": "not_started" }`. Never add titles, descriptions, inputs, outputs, checks, role names, paths, waves, history, test results, commit IDs or evidence to it.
