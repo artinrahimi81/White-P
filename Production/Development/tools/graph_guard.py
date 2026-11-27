@@ -271,6 +271,301 @@ def validate_schema_11_record(task,by_id,record,plan_by_id,root,out,ctx):
   if affected!=mapped.get(cid,set()):
    out.append(Finding("ERROR","RECONCILIATION_SET_MISMATCH",f"{ctx}: {cid} missing={sorted(affected-mapped.get(cid,set()))}; extra={sorted(mapped.get(cid,set())-affected)}."))
 
+
+def _is_iso_timestamp(value):
+ return isinstance(value,str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})",value) is not None
+
+
+def _string_array(value):
+ return isinstance(value,list) and all(isinstance(x,str) and x.strip() for x in value) and len(value)==len(set(value))
+
+
+def validate_schema_12_record(task,by_id,record,markdown,root,out):
+ """Validate detailed project-equivalent task fields stored in the task-status record."""
+ tid=task["id"]; ctx=f"{tid} schema 1.2"
+ definition=record.get("task_definition")
+ if not isinstance(definition,dict):
+  out.append(Finding("ERROR","MISSING_TASK_DEFINITION",f"{ctx}: task_definition is required.")); definition={}
+ for field in ("section","description","implementation_focus","start_condition","acceptance_summary","status_label_fa"):
+  if not isinstance(definition.get(field),str) or not definition[field].strip():
+   out.append(Finding("ERROR","INCOMPLETE_TASK_DEFINITION",f"{ctx}: task_definition.{field} is required."))
+ if definition.get("source_task_id") is not None and not isinstance(definition.get("source_task_id"),str):
+  out.append(Finding("ERROR","INVALID_SOURCE_TASK_ID",f"{ctx}: source_task_id must be text or null."))
+ operation=definition.get("source_change_operation")
+ if operation is not None and operation not in SOURCE_CHANGE_OPERATIONS:
+  out.append(Finding("ERROR","INVALID_SOURCE_CHANGE_OPERATION",f"{ctx}: invalid source_change_operation {operation!r}."))
+ if not _string_array(definition.get("affected_task_ids")):
+  out.append(Finding("ERROR","INVALID_TASK_AFFECTED_IDS",f"{ctx}: affected_task_ids must be a unique string array."))
+ if not isinstance(definition.get("notes"),list) or any(not isinstance(x,str) for x in definition.get("notes",[])):
+  out.append(Finding("ERROR","INVALID_TASK_NOTES",f"{ctx}: notes must be an array of strings."))
+
+ # Full input contract: source, provider, required artifact, availability and evidence.
+ inputs=definition.get("inputs")
+ if not isinstance(inputs,list) or not inputs:
+  out.append(Finding("ERROR","MISSING_TASK_INPUTS",f"{ctx}: inputs must enumerate all required task inputs.")); inputs=[]
+ seen_inputs=set()
+ for item in inputs:
+  if not isinstance(item,dict):
+   out.append(Finding("ERROR","INVALID_TASK_INPUT",f"{ctx}: input entries must be objects.")); continue
+  iid=item.get("input_id")
+  if not isinstance(iid,str) or re.fullmatch(r"IN-\d{3}",iid) is None or iid in seen_inputs:
+   out.append(Finding("ERROR","INVALID_INPUT_ID",f"{ctx}: invalid/duplicate input ID {iid!r}."))
+  seen_inputs.add(iid)
+  for field in ("description","required_artifact","notes"):
+   if not isinstance(item.get(field),str) or not item[field].strip():
+    out.append(Finding("ERROR","INCOMPLETE_TASK_INPUT",f"{ctx}: {iid!r} missing {field}."))
+  if not _string_array(item.get("source_refs")):
+   out.append(Finding("ERROR","INVALID_INPUT_SOURCE_REFS",f"{ctx}: {iid!r} source_refs must be a unique string array."))
+  providers=item.get("provider_task_ids")
+  if not isinstance(providers,list) or any(not isinstance(x,str) or x not in by_id or x==tid for x in providers) or len(providers)!=len(set(providers)):
+   out.append(Finding("ERROR","INVALID_INPUT_PROVIDERS",f"{ctx}: {iid!r} provider_task_ids are invalid."))
+  if item.get("availability") not in INPUT_AVAILABILITY:
+   out.append(Finding("ERROR","INVALID_INPUT_AVAILABILITY",f"{ctx}: {iid!r} availability is invalid."))
+  ev=item.get("evidence")
+  if not isinstance(ev,list):
+   out.append(Finding("ERROR","INVALID_INPUT_EVIDENCE",f"{ctx}: {iid!r} evidence must be an array.")); ev=[]
+  for value in ev: evidence_item(value,root,out,f"{ctx} input {iid}")
+  if item.get("availability")=="available" and not item.get("source_refs") and not ev:
+   out.append(Finding("ERROR","AVAILABLE_INPUT_WITHOUT_SOURCE",f"{ctx}: {iid!r} is available without a source or evidence."))
+  if item.get("availability")=="not_applicable" and not str(item.get("not_applicable_reason") or "").strip():
+   out.append(Finding("ERROR","INPUT_NA_WITHOUT_REASON",f"{ctx}: {iid!r} requires a reason."))
+
+ # Output contract keeps expected paths separate from actual files and links every deliverable to acceptance.
+ criteria=record.get("acceptance_criteria")
+ criterion_ids={x.get("id") for x in criteria if isinstance(x,dict)} if isinstance(criteria,list) else set()
+ outputs=definition.get("outputs")
+ if not isinstance(outputs,list) or not outputs:
+  out.append(Finding("ERROR","MISSING_TASK_OUTPUTS",f"{ctx}: outputs must enumerate all task deliverables.")); outputs=[]
+ seen_outputs=set(); expected_paths=[]; actual_paths=[]
+ for item in outputs:
+  if not isinstance(item,dict):
+   out.append(Finding("ERROR","INVALID_TASK_OUTPUT",f"{ctx}: output entries must be objects.")); continue
+  oid=item.get("output_id")
+  if not isinstance(oid,str) or re.fullmatch(r"OUT-\d{3}",oid) is None or oid in seen_outputs:
+   out.append(Finding("ERROR","INVALID_OUTPUT_ID",f"{ctx}: invalid/duplicate output ID {oid!r}."))
+  seen_outputs.add(oid)
+  for field in ("description","expected_path"):
+   if not isinstance(item.get(field),str) or not item[field].strip():
+    out.append(Finding("ERROR","INCOMPLETE_TASK_OUTPUT",f"{ctx}: {oid!r} missing {field}."))
+  if item.get("output_type") not in OUTPUT_TYPES:
+   out.append(Finding("ERROR","INVALID_OUTPUT_TYPE",f"{ctx}: {oid!r} has invalid output_type."))
+  expected=item.get("expected_path")
+  if isinstance(expected,str):
+   _,problem=safe_repo_file(root,expected)
+   if problem: out.append(Finding("ERROR","UNSAFE_EXPECTED_OUTPUT_PATH",f"{ctx}: {oid!r}: {problem}."))
+   expected_paths.append(expected)
+  links=item.get("acceptance_criteria_ids")
+  if not _string_array(links) or not links:
+   out.append(Finding("ERROR","INVALID_OUTPUT_ACCEPTANCE_LINKS",f"{ctx}: {oid!r} must link acceptance IDs."))
+  else:
+   for acc_id in links:
+    if acc_id not in criterion_ids:
+     out.append(Finding("ERROR","UNKNOWN_OUTPUT_ACCEPTANCE_LINK",f"{ctx}: {oid!r} links unknown acceptance ID {acc_id!r}."))
+  state=item.get("status")
+  if state not in OUTPUT_STATES:
+   out.append(Finding("ERROR","INVALID_OUTPUT_STATUS",f"{ctx}: {oid!r} has invalid status."))
+  actual=item.get("actual_paths")
+  ev=item.get("evidence")
+  if not isinstance(actual,list) or any(not isinstance(x,str) or not x.strip() for x in actual):
+   out.append(Finding("ERROR","INVALID_OUTPUT_ACTUAL_PATHS",f"{ctx}: {oid!r} actual_paths must be a string array.")); actual=[]
+  if not isinstance(ev,list):
+   out.append(Finding("ERROR","INVALID_OUTPUT_EVIDENCE",f"{ctx}: {oid!r} evidence must be an array.")); ev=[]
+  for raw in actual:
+   path,problem=safe_repo_file(root,raw)
+   if problem: out.append(Finding("ERROR","UNSAFE_OUTPUT_ACTUAL_PATH",f"{ctx}: {oid!r}: {problem}."))
+   elif path is None or not path.is_file():
+    out.append(Finding("ERROR","MISSING_OUTPUT_ACTUAL_FILE",f"{ctx}: {oid!r} actual file {raw!r} is missing."))
+   actual_paths.append(raw)
+  for value in ev: evidence_item(value,root,out,f"{ctx} output {oid}")
+  if state in {"created","verified"} and not actual:
+   out.append(Finding("ERROR","OUTPUT_STATE_WITHOUT_ACTUAL_FILE",f"{ctx}: {oid!r} is {state} without actual_paths."))
+  if state=="verified" and not ev:
+   out.append(Finding("ERROR","VERIFIED_OUTPUT_WITHOUT_EVIDENCE",f"{ctx}: {oid!r} is verified without evidence."))
+  if state=="not_applicable" and not str(item.get("not_applicable_reason") or "").strip():
+   out.append(Finding("ERROR","OUTPUT_NA_WITHOUT_REASON",f"{ctx}: {oid!r} requires a reason."))
+ if not _string_array(record.get("expected_output_paths")) or set(record.get("expected_output_paths",[]))!=set(expected_paths):
+  out.append(Finding("ERROR","EXPECTED_OUTPUT_PATH_SET_MISMATCH",f"{ctx}: expected_output_paths must match task_definition.outputs."))
+ if isinstance(record.get("actual_output_paths"),list) and set(record["actual_output_paths"])!=set(actual_paths):
+  out.append(Finding("ERROR","ACTUAL_OUTPUT_PATH_SET_MISMATCH",f"{ctx}: actual_output_paths must match output actual_paths."))
+ if len(actual_paths)!=len(set(actual_paths)):
+  out.append(Finding("ERROR","DUPLICATE_TASK_OUTPUT_PATH",f"{ctx}: duplicate actual output path."))
+
+ if isinstance(criteria,list):
+  for item in criteria:
+   if not isinstance(item,dict): continue
+   for field in ("description","expected_result","verification_method"):
+    if not isinstance(item.get(field),str) or not item[field].strip():
+     out.append(Finding("ERROR","INCOMPLETE_ACCEPTANCE_CONTRACT",f"{ctx}: acceptance {item.get('id')!r} missing {field}."))
+
+ # The canonical machine register must contain all 81 exact checks and agree with Markdown tables.
+ expected_fixed={}
+ for role in ROLE_IDS:
+  for pid,check in fixed_parameter_definitions_from_prompt(root,role):
+   expected_fixed[(role,pid)]=check
+ expected_count=sum(len(v) for v in FIXED_PARAMETER_IDS.values())
+ if len(expected_fixed)!=expected_count:
+  out.append(Finding("ERROR","INCOMPLETE_CANONICAL_PARAMETER_REGISTRY",f"{ctx}: resolved {len(expected_fixed)} of {expected_count} canonical fixed checks."))
+ reviews=record.get("parameter_reviews")
+ if not isinstance(reviews,list):
+  out.append(Finding("ERROR","INVALID_PARAMETER_REVIEWS",f"{ctx}: parameter_reviews must be an array.")); reviews=[]
+ seen_keys=set(); found_fixed=set(); task_ids_by_role=defaultdict(set)
+ agents={a.get("role_id"):a for a in record.get("agent_reviews",[]) if isinstance(a,dict)}
+ for item in reviews:
+  if not isinstance(item,dict):
+   out.append(Finding("ERROR","INVALID_PARAMETER_REVIEW",f"{ctx}: parameter entries must be objects.")); continue
+  role=item.get("role_id"); pid=item.get("parameter_id"); key=(role,pid)
+  if role not in ROLE_IDS or key in seen_keys:
+   out.append(Finding("ERROR","DUPLICATE_PARAMETER_REVIEW",f"{ctx}: invalid/duplicate parameter key {key!r}.")); continue
+  seen_keys.add(key)
+  group=item.get("group")
+  if group=="fixed":
+   canonical=expected_fixed.get(key)
+   if canonical is None:
+    out.append(Finding("ERROR","UNKNOWN_FIXED_PARAMETER",f"{ctx}: {key!r} is not canonical."))
+   else:
+    found_fixed.add(key)
+    if item.get("check")!=canonical:
+     out.append(Finding("ERROR","FIXED_PARAMETER_TEXT_MISMATCH",f"{ctx}: {pid} differs from the canonical prompt text."))
+    rows=[line for line in markdown.splitlines() if f"| {pid} |" in line]
+    if len(rows)!=1 or canonical not in rows[0]:
+     out.append(Finding("ERROR","FIXED_PARAMETER_MARKDOWN_MISMATCH",f"{ctx}: {pid} must appear once with exact text in its role table."))
+  elif group=="task_specific":
+   prefix=FIXED_PARAMETER_IDS[role][0].split("-")[0]
+   if not valid_task_parameter_id(prefix,pid):
+    out.append(Finding("ERROR","INVALID_TASK_SPECIFIC_PARAMETER",f"{ctx}: invalid task parameter ID {pid!r}."))
+   task_ids_by_role[role].add(pid)
+   rows=[line for line in markdown.splitlines() if f"| {pid} |" in line]
+   if len(rows)!=1 or not isinstance(item.get("check"),str) or item["check"] not in rows[0]:
+    out.append(Finding("ERROR","TASK_PARAMETER_MARKDOWN_MISMATCH",f"{ctx}: {pid} must appear once with exact task check text."))
+  else:
+   out.append(Finding("ERROR","INVALID_PARAMETER_GROUP",f"{ctx}: invalid group for {pid!r}."))
+  for field in ("check","expected_result","evidence_required"):
+   if not isinstance(item.get(field),str) or not item[field].strip():
+    out.append(Finding("ERROR","INCOMPLETE_PARAMETER_REVIEW",f"{ctx}: {pid!r} missing {field}."))
+  state=item.get("status")
+  if state not in PARAMETER_STATES:
+   out.append(Finding("ERROR","INVALID_PARAMETER_REVIEW_STATUS",f"{ctx}: {pid!r} has invalid status."))
+  ev=item.get("evidence")
+  if not isinstance(ev,list):
+   out.append(Finding("ERROR","INVALID_PARAMETER_EVIDENCE",f"{ctx}: {pid!r} evidence must be an array.")); ev=[]
+  if state=="passed" and not ev:
+   out.append(Finding("ERROR","PASSED_PARAMETER_WITHOUT_EVIDENCE",f"{ctx}: {pid!r} passed without evidence."))
+  if state=="not_applicable" and not str(item.get("rationale") or "").strip():
+   out.append(Finding("ERROR","NA_PARAMETER_WITHOUT_REASON",f"{ctx}: {pid!r} not_applicable without rationale."))
+  for value in ev: evidence_item(value,root,out,f"{ctx} parameter {pid}")
+ if found_fixed!=set(expected_fixed):
+  out.append(Finding("ERROR","FIXED_PARAMETER_SET_MISMATCH",f"{ctx}: missing={sorted(set(expected_fixed)-found_fixed)}; extra={sorted(found_fixed-set(expected_fixed))}."))
+ for role,agent in agents.items():
+  fixed_items=[x for x in reviews if isinstance(x,dict) and x.get("role_id")==role and x.get("group")=="fixed"]
+  if agent.get("state")=="not_applicable":
+   bad=[x.get("parameter_id") for x in fixed_items if x.get("status")!="not_applicable" or not str(x.get("rationale") or "").strip()]
+   if bad: out.append(Finding("ERROR","NA_ROLE_PARAMETER_MISMATCH",f"{ctx}: {role} not_applicable role has non-NA fixed checks {bad}."))
+  if agent.get("state")=="completed":
+   pending=[x.get("parameter_id") for x in reviews if isinstance(x,dict) and x.get("role_id")==role and x.get("status") in {"pending","needs_consultation"}]
+   if pending: out.append(Finding("ERROR","COMPLETED_ROLE_HAS_PENDING_PARAMETERS",f"{ctx}: completed role {role} has pending checks {pending}."))
+  listed=agent.get("task_specific_parameter_ids",[])
+  if not isinstance(listed,list) or set(listed)!=task_ids_by_role.get(role,set()):
+   if listed or task_ids_by_role.get(role):
+    out.append(Finding("ERROR","TASK_PARAMETER_ID_SET_MISMATCH",f"{ctx}: {role} task-specific IDs differ from parameter_reviews."))
+
+ # Complete incoming-edge metadata is task-scoped; graph nodes remain unchanged.
+ prereqs=record.get("prerequisite_reviews",[])
+ for item in prereqs if isinstance(prereqs,list) else []:
+  if not isinstance(item,dict): continue
+  pred=item.get("task_id")
+  for field in ("required_artifact","consumer_reason","reviewed_by"):
+   if not isinstance(item.get(field),str) or not item[field].strip():
+    out.append(Finding("ERROR","INCOMPLETE_EDGE_REVIEW_CONTRACT",f"{ctx}: edge {pred!r} missing {field}."))
+  if item.get("edge_type")!="blocks":
+   out.append(Finding("ERROR","INVALID_EDGE_TYPE",f"{ctx}: edge {pred!r} must have type blocks."))
+  if item.get("observed_predecessor_status") not in GRAPH_STATUSES:
+   out.append(Finding("ERROR","INVALID_OBSERVED_PREDECESSOR_STATUS",f"{ctx}: edge {pred!r} has invalid observed status."))
+  if not _is_iso_timestamp(item.get("reviewed_at")):
+   out.append(Finding("ERROR","INVALID_EDGE_REVIEW_TIMESTAMP",f"{ctx}: edge {pred!r} reviewed_at must be ISO-8601."))
+
+ # Validate project-style attempt details and independently derive the execution summary.
+ history=record.get("execution_history",[])
+ if not isinstance(history,list): history=[]
+ changed_files=[]; related_commits=[]; tests_passed=[]; tests_failed=[]; failed_attempts=0
+ for attempt in history:
+  if not isinstance(attempt,dict): continue
+  aid=attempt.get("attempt_id")
+  for field in ("commit_sha_reason","related_commits","device_and_host_details_redacted","model_revision_and_sha256","pre_upgrade_post_upgrade_snapshot"):
+   if field not in attempt:
+    out.append(Finding("ERROR","INCOMPLETE_PROJECT_ATTEMPT",f"{ctx}: attempt {aid!r} missing {field}."))
+  commit_sha=attempt.get("commit_sha")
+  if commit_sha is None:
+   if not isinstance(attempt.get("commit_sha_reason"),str) or not attempt["commit_sha_reason"].strip():
+    out.append(Finding("ERROR","NULL_COMMIT_WITHOUT_REASON",f"{ctx}: attempt {aid!r} null commit SHA needs an explanation."))
+  elif not isinstance(commit_sha,str) or re.fullmatch(r"[0-9a-f]{40}",commit_sha) is None:
+   out.append(Finding("ERROR","INVALID_ATTEMPT_COMMIT_SHA",f"{ctx}: attempt {aid!r} commit SHA must be full 40-character SHA."))
+  related=attempt.get("related_commits")
+  if not isinstance(related,list) or any(not isinstance(x,str) or re.fullmatch(r"[0-9a-f]{40}",x) is None for x in related):
+   out.append(Finding("ERROR","INVALID_RELATED_COMMITS",f"{ctx}: attempt {aid!r} related_commits must be full SHAs.")); related=[]
+  for sha in related:
+   if sha not in related_commits: related_commits.append(sha)
+  if isinstance(commit_sha,str) and re.fullmatch(r"[0-9a-f]{40}",commit_sha) and commit_sha not in related_commits:
+   related_commits.append(commit_sha)
+  for raw in attempt.get("changed_files",[]) if isinstance(attempt.get("changed_files"),list) else []:
+   if not isinstance(raw,str) or not raw.strip() or "\\" in raw or PurePosixPath(raw).is_absolute() or ".." in PurePosixPath(raw).parts:
+    out.append(Finding("ERROR","INVALID_ATTEMPT_CHANGED_PATH",f"{ctx}: attempt {aid!r} unsafe changed path {raw!r}."))
+   elif raw not in changed_files: changed_files.append(raw)
+  if not _is_iso_timestamp(attempt.get("started_at")) or not _is_iso_timestamp(attempt.get("ended_at")):
+   out.append(Finding("ERROR","INVALID_ATTEMPT_TIMESTAMP",f"{ctx}: attempt {aid!r} timestamps must be ISO-8601."))
+  for field in ("device_and_host_details_redacted","model_revision_and_sha256","pre_upgrade_post_upgrade_snapshot"):
+   if not isinstance(attempt.get(field),str) or not attempt[field].strip():
+    out.append(Finding("ERROR","INCOMPLETE_PROJECT_ATTEMPT",f"{ctx}: attempt {aid!r} {field} must be text; use Not applicable when irrelevant."))
+  tests=attempt.get("tests")
+  if not isinstance(tests,list):
+   out.append(Finding("ERROR","INVALID_PROJECT_ATTEMPT_TESTS",f"{ctx}: attempt {aid!r} tests must be an array.")); tests=[]
+  for test in tests:
+   if not isinstance(test,dict): 
+    out.append(Finding("ERROR","INVALID_PROJECT_TEST",f"{ctx}: attempt {aid!r} test must be an object.")); continue
+   for field in ("name","command","environment","note"):
+    if not isinstance(test.get(field),str) or not test[field].strip():
+     out.append(Finding("ERROR","INCOMPLETE_PROJECT_TEST",f"{ctx}: attempt {aid!r} test missing {field}."))
+   result=test.get("result")
+   if result not in ATTEMPT_TEST_RESULTS:
+    out.append(Finding("ERROR","INVALID_PROJECT_TEST_RESULT",f"{ctx}: test result {result!r} is invalid."))
+   if result=="passed": tests_passed.append(test.get("command"))
+   if result=="failed": tests_failed.append(test.get("command"))
+   if result=="skipped" and not (str(test.get("skipped_reason") or "").strip() or str(test.get("note") or "").strip()):
+    out.append(Finding("ERROR","SKIPPED_TEST_WITHOUT_REASON",f"{ctx}: skipped test needs a reason."))
+   if test.get("run_id") is not None and not isinstance(test.get("run_id"),(str,int)):
+    out.append(Finding("ERROR","INVALID_TEST_RUN_ID",f"{ctx}: run_id must be text, integer or null."))
+   url=test.get("url")
+   if url is not None and (not isinstance(url,str) or not url.startswith("https://")):
+    out.append(Finding("ERROR","INVALID_TEST_URL",f"{ctx}: URL must be HTTPS or null."))
+  if attempt.get("result")=="failed": failed_attempts+=1
+ latest=history[-1] if history and isinstance(history[-1],dict) else None
+ summary=record.get("execution_summary")
+ if not isinstance(summary,dict):
+  out.append(Finding("ERROR","INVALID_PROJECT_EXECUTION_SUMMARY",f"{ctx}: execution_summary must be an object.")); summary={}
+ expected_summary={
+  "attempt_count":len(history),"failed_attempt_count":failed_attempts,
+  "last_attempt_id":latest.get("attempt_id") if latest else None,
+  "last_attempt_result":latest.get("result") if latest else None,
+  "changed_files":changed_files,"related_commits":related_commits,
+  "tests_passed":list(dict.fromkeys(tests_passed)),"tests_failed":list(dict.fromkeys(tests_failed)),
+  "blocked_reason":latest.get("blocked_reason") if latest else None,
+  "reopened_reason":latest.get("reopened_reason") if latest else None
+ }
+ for field,value in expected_summary.items():
+  if summary.get(field)!=value:
+   out.append(Finding("ERROR","EXECUTION_SUMMARY_DERIVATION_MISMATCH",f"{ctx}: execution_summary.{field} differs from derived value."))
+ if task.get("status")=="done":
+  if latest is None or latest.get("result")!="succeeded":
+   out.append(Finding("ERROR","DONE_WITHOUT_LATEST_SUCCESSFUL_ATTEMPT",f"{ctx}: latest attempt must be succeeded."))
+  elif any(x.get("result") in {"failed","pending","not_run"} for x in latest.get("tests",[]) if isinstance(x,dict)):
+   out.append(Finding("ERROR","DONE_WITH_UNRESOLVED_LATEST_CHECKS",f"{ctx}: latest attempt has failed/pending/not_run checks."))
+ contract=record.get("contract_revalidation")
+ if isinstance(contract,dict):
+  if not isinstance(contract.get("triggering_contracts"),list):
+   out.append(Finding("ERROR","INVALID_CONTRACT_REVALIDATION_TRIGGERS",f"{ctx}: triggering_contracts must be an array."))
+  if task.get("status")=="done" and contract.get("state") not in {"not_required","passed"}:
+   out.append(Finding("ERROR","DONE_WITH_UNRESOLVED_CONTRACT_REVALIDATION",f"{ctx}: done task requires not_required or passed contract revalidation."))
+
+
 def validate_record(task,by_id,record,markdown,root,out,plan_by_id):
  tid=task["id"]; ctx=f"{tid} task-status"
  schema_version=record.get("schema_version")
@@ -461,6 +756,9 @@ def validate_record(task,by_id,record,markdown,root,out,plan_by_id):
    out.append(Finding("ERROR","DEFERRED_FINAL_WITHOUT_METADATA",f"{ctx}: deferred_final requires reason, start_condition and final_stage."))
  if code_outputs and task["status"]=="done" and not any(isinstance(x,str) and (x.startswith("tests/") or x.startswith("test/")) for x in evidence):
   out.append(Finding("ERROR","DONE_WITHOUT_TEST_SOURCE_EVIDENCE",f"{ctx}: code outputs require test source evidence under tests/ or test/."))
+
+ if schema_version=="1.2":
+  validate_schema_12_record(task,by_id,record,markdown,root,out)
 
 
 def validate_graph(graph:Any,repo_root:Path|None=None)->list[Finding]:
