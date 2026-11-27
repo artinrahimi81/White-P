@@ -331,6 +331,17 @@ class Schema12ProjectParityTests(unittest.TestCase):
   (folder/"task-status.md").write_text("\n".join(lines)+"\n",encoding="utf-8")
   return graph,record,folder/"task-status.md",definitions
 
+ def save_fixture_status(self,root,record,definitions):
+  markdown_rows=[]
+  for role in ROLE_IDS:
+   for pid,check in definitions[role]:
+    markdown_rows.append(f"| {pid} | 1 | {check} | Expected | Evidence | pending |")
+  fence=chr(96)*3
+  lines=["# Task Status",*markdown_rows,STATUS_START,fence+"json",json.dumps(record,ensure_ascii=False,indent=2),fence,STATUS_END]
+  folder=root/"Production"/"Development"/"Tasks"/record["task_id"]
+  folder.mkdir(parents=True,exist_ok=True)
+  (folder/"task-status.md").write_text("\n".join(lines)+"\n",encoding="utf-8")
+
  def test_schema12_complete_project_contract_passes(self):
   with tempfile.TemporaryDirectory() as td:
    root=Path(td); graph,record,status_path,_=self.make_fixture(root)
@@ -338,23 +349,23 @@ class Schema12ProjectParityTests(unittest.TestCase):
 
  def test_schema12_requires_complete_task_inputs_and_outputs(self):
   with tempfile.TemporaryDirectory() as td:
-   root=Path(td); graph,record,status_path,_=self.make_fixture(root)
+   root=Path(td); graph,record,status_path,definitions=self.make_fixture(root)
    record["task_definition"]["inputs"]=[]
-   write_status(root,record)
+   self.save_fixture_status(root,record,definitions)
    errors={x.code for x in validate_graph(graph,root)}
    self.assertIn("MISSING_TASK_INPUTS",errors)
 
  def test_schema12_requires_all_81_exact_parameter_checks(self):
   with tempfile.TemporaryDirectory() as td:
-   root=Path(td); graph,record,status_path,_=self.make_fixture(root)
+   root=Path(td); graph,record,status_path,definitions=self.make_fixture(root)
    record["parameter_reviews"].pop()
-   write_status(root,record)
+   self.save_fixture_status(root,record,definitions)
    errors={x.code for x in validate_graph(graph,root)}
    self.assertIn("FIXED_PARAMETER_SET_MISMATCH",errors)
 
  def test_schema12_requires_attempt_summary_to_be_derived(self):
   with tempfile.TemporaryDirectory() as td:
-   root=Path(td); graph,record,status_path,_=self.make_fixture(root)
+   root=Path(td); graph,record,status_path,definitions=self.make_fixture(root)
    record["execution_history"]=[{
     "attempt_id":"WP-NEW-001-A001","started_at":"2026-11-27T10:00:00Z",
     "ended_at":"2026-11-27T10:01:00Z","result":"partial",
@@ -375,16 +386,16 @@ class Schema12ProjectParityTests(unittest.TestCase):
     "attempt_count":1,"last_attempt_id":"WP-NEW-001-A001",
     "last_attempt_result":"partial","changed_files":["output.md"]
    })
-   write_status(root,record)
+   self.save_fixture_status(root,record,definitions)
    self.assertEqual(validate_graph(graph,root),[])
    record["execution_summary"]["changed_files"]=[]
-   write_status(root,record)
+   self.save_fixture_status(root,record,definitions)
    errors={x.code for x in validate_graph(graph,root)}
    self.assertIn("EXECUTION_SUMMARY_DERIVATION_MISMATCH",errors)
 
  def test_schema12_requires_validated_edges_before_in_progress(self):
   with tempfile.TemporaryDirectory() as td:
-   root=Path(td); graph,record,status_path,_=self.make_fixture(root,dependencies=["WP-PRE-001"])
+   root=Path(td); graph,record,status_path,definitions=self.make_fixture(root,dependencies=["WP-PRE-001"])
    graph={"tasks":[node("WP-PRE-001",status="not_started"),graph["tasks"][0]]}
    positions,_=derive_execution_waves(graph)
    record["execution_plan"].update(positions["WP-NEW-001"])
@@ -395,7 +406,7 @@ class Schema12ProjectParityTests(unittest.TestCase):
     "required_artifact":"Approved shared contract.","consumer_reason":"The task consumes this contract.",
     "reviewed_by":"senior-engineer","reviewed_at":"2026-11-27T10:00:00Z"
    }]
-   write_status(root,record)
+   self.save_fixture_status(root,record,definitions)
    errors={x.code for x in validate_graph(graph,root)}
    self.assertIn("UNVALIDATED_PREREQUISITE_BEFORE_START",errors)
 
