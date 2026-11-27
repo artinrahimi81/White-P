@@ -16,6 +16,11 @@ ATTEMPT_RESULTS={"succeeded","failed","partial","blocked","reopened"}
 EXECUTION_MODES={"not_run","same_assistant_sequential_role_scoped_pass","independent_agent"}
 CONSULTATION_STATES={"requested","answered","accepted","rejected","unresolved"}
 REVALIDATION_STATES={"not_required","required","in_review","passed","failed"}
+INPUT_AVAILABILITY={"available","pending","blocked","not_applicable"}
+OUTPUT_TYPES={"code","test","document","configuration","design","decision","other"}
+OUTPUT_STATES={"pending","created","verified","not_applicable"}
+ATTEMPT_TEST_RESULTS={"passed","failed","not_run","skipped","pending"}
+SOURCE_CHANGE_OPERATIONS={"modify","add","remove","preserve","defer"}
 STATUS_START="<!-- WHITEP_TASK_STATUS_RECORD_START -->"
 STATUS_END="<!-- WHITEP_TASK_STATUS_RECORD_END -->"
 ROLE_IDS=("senior-engineer","execution-engineer","qa-testing-engineer","safety-engineer","project-structure-engineer","design-engineer","ux-interaction-engineer","feasibility-engineer","idea-alignment-engineer","project-mapping-engineer")
@@ -33,7 +38,7 @@ FIXED_PARAMETER_IDS={
  "project-mapping-engineer":[f"PM-{i:02d}" for i in range(1,8)],
 }
 LEGACY_FIXED_PARAMETER_IDS={**FIXED_PARAMETER_IDS,"senior-engineer":[f"SE-{i:02d}" for i in range(1,8)]}
-SUPPORTED_SCHEMA_VERSIONS={"1.0","1.1"}
+SUPPORTED_SCHEMA_VERSIONS={"1.0","1.1","1.2"}
 SCHEDULING_MODES={"sequential_default","controlled_parallel"}
 CHANGE_REGISTER_STATES={"identified","impact_mapped","reconciliation_in_progress","accepted","rejected"}
 IMPACT_CLASSIFICATIONS={"direct","transitive","contract","behavioral","documentation","none"}
@@ -270,7 +275,7 @@ def validate_record(task,by_id,record,markdown,root,out,plan_by_id):
  tid=task["id"]; ctx=f"{tid} task-status"
  schema_version=record.get("schema_version")
  if schema_version not in SUPPORTED_SCHEMA_VERSIONS: out.append(Finding("ERROR","STATUS_SCHEMA_VERSION",f"{ctx}: schema_version must be one of {sorted(SUPPORTED_SCHEMA_VERSIONS)}."))
- if schema_version=="1.1": validate_schema_11_record(task,by_id,record,plan_by_id,root,out,ctx)
+ if schema_version in {"1.1","1.2"}: validate_schema_11_record(task,by_id,record,plan_by_id,root,out,ctx)
  if record.get("task_id")!=tid: out.append(Finding("ERROR","STATUS_TASK_ID_MISMATCH",f"{ctx}: record task_id differs from graph."))
  if record.get("graph_status")!=task.get("status"): out.append(Finding("ERROR","STATUS_GRAPH_STATE_MISMATCH",f"{ctx}: record graph_status differs from graph."))
 
@@ -376,7 +381,7 @@ def validate_record(task,by_id,record,markdown,root,out,plan_by_id):
   if not isinstance(tests,list):
    out.append(Finding("ERROR","INVALID_ATTEMPT_TESTS",f"{ctx}: attempt {aid!r} tests must be an array.")); tests=[]
   for test in tests:
-   if not isinstance(test,dict) or not isinstance(test.get("command"),str) or test.get("result") not in {"passed","failed","not_run"}:
+   if not isinstance(test,dict) or not isinstance(test.get("command"),str) or test.get("result") not in {"passed","failed","not_run","skipped","pending"}:
     out.append(Finding("ERROR","INVALID_TEST_RESULT",f"{ctx}: attempt {aid!r} has malformed test/check.")); continue
    if test["result"]=="passed": passed_tests.append(test["command"])
    elif test["result"]=="failed": failed_tests.append(test["command"])
