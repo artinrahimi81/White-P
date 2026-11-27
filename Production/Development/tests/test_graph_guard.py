@@ -232,9 +232,6 @@ class Schema11TaskStatusTests(unittest.TestCase):
    errors={x.code for x in validate_graph(graph,root)}
   self.assertIn("INCOMPLETE_RECONCILIATION_TRANSITION",errors)
 
-if __name__=="__main__": unittest.main(verbosity=2)
-
-
 class Schema12ProjectParityTests(unittest.TestCase):
  def make_fixture(self,root,task_id="WP-NEW-001",dependencies=None):
   root.mkdir(parents=True,exist_ok=True)
@@ -410,3 +407,45 @@ class Schema12ProjectParityTests(unittest.TestCase):
    errors={x.code for x in validate_graph(graph,root)}
    self.assertIn("UNVALIDATED_PREREQUISITE_BEFORE_START",errors)
 
+ def test_schema12_done_requires_latest_success_and_verified_outputs(self):
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td); graph,record,status_path,definitions=self.make_fixture(root)
+   graph["tasks"][0]["status"]="done"; record["graph_status"]="done"
+   (root/"output.md").write_text("Verified deliverable.",encoding="utf-8")
+   tests_dir=root/"tests"; tests_dir.mkdir(exist_ok=True)
+   (tests_dir/"test_acceptance.py").write_text("def test_acceptance(): assert True\n",encoding="utf-8")
+   record["task_definition"]["outputs"][0].update({
+    "status":"verified","actual_paths":["output.md"],"evidence":["output.md"]
+   })
+   record["actual_output_paths"]=["output.md"]
+   record["acceptance_criteria"][0].update({
+    "status":"passed","evidence":["output.md","tests/test_acceptance.py"]
+   })
+   record["evidence"]=["output.md","tests/test_acceptance.py"]
+   commit="a"*40
+   record["execution_history"]=[{
+    "attempt_id":"WP-NEW-001-A001","started_at":"2026-11-27T10:00:00Z",
+    "ended_at":"2026-11-27T10:01:00Z","result":"succeeded",
+    "summary":"Produced and verified the output.","changed_files":["output.md","tests/test_acceptance.py"],
+    "commit_sha":commit,"commit_sha_reason":"The output is committed in the accepted revision.",
+    "related_commits":[],"tests":[{
+     "name":"Acceptance regression test","command":"python -m unittest tests.test_acceptance -v",
+     "result":"passed","environment":"CI","run_id":123,
+     "url":"https://github.com/example/repo/actions/runs/123","note":"Observed passing run."
+    }],
+    "failure_details":None,"blocked_reason":None,"reopened_reason":None,
+    "contract_changes":[],"follow_up":"None.",
+    "device_and_host_details_redacted":"Not applicable.",
+    "model_revision_and_sha256":"Not applicable.",
+    "pre_upgrade_post_upgrade_snapshot":"Not applicable."
+   }]
+   record["execution_summary"].update({
+    "attempt_count":1,"failed_attempt_count":0,"last_attempt_id":"WP-NEW-001-A001",
+    "last_attempt_result":"succeeded","changed_files":["output.md","tests/test_acceptance.py"],
+    "related_commits":[commit],"tests_passed":["python -m unittest tests.test_acceptance -v"]
+   })
+   self.save_fixture_status(root,record,definitions)
+   errors={x.code for x in validate_graph(graph,root)}
+   self.assertEqual(errors,set())
+
+if __name__=="__main__": unittest.main(verbosity=2)
