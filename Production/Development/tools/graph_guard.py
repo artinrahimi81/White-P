@@ -603,6 +603,8 @@ def validate_record(task,by_id,record,markdown,root,out,plan_by_id):
    if review is None or parent is None: continue
    cls=review.get("classification"); state=review.get("validation_status")
    if state=="disputed": out.append(Finding("ERROR","DISPUTED_PREREQUISITE",f"{ctx}: disputed prerequisite {pred} must be resolved."))
+   if schema_version=="1.2" and state!="validated":
+    out.append(Finding("ERROR","UNVALIDATED_PREREQUISITE_BEFORE_START",f"{ctx}: schema 1.2 requires edge {pred} to be validated before in_progress/done."))
    elif cls=="sequencing_only" and state=="validated": pass
    elif parent.get("status")!="done": out.append(Finding("ERROR","PREREQUISITE_NOT_DONE",f"{ctx}: prerequisite {pred} is {parent.get('status')!r}, not done."))
    if task["status"]=="done" and state!="validated": out.append(Finding("ERROR","DONE_WITH_UNREVIEWED_EDGE",f"{ctx}: prerequisite {pred} must be validated."))
