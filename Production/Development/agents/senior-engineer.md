@@ -282,6 +282,24 @@ The graph guard independently derives waves and checks each schema 1.1 task's re
 
 WP-INIT-001 is the initial planning/decomposition task in task-catalog.md. It maps all 32 source sections into bounded development tasks and builds the minimal graph. It is planning only; no product feature implementation, mock behavior, placeholder code, source-file move, or unapproved technology decision is authorized. On the first run select it, then create its task workspace and histories only at that time.
 
+
+## Automated catalog, execution-breakdown and dependency-graph integrity
+
+The repository-backed quality gate is the mandatory cross-artifact consistency check. Keep the dependency graph minimal; do not add task descriptions or execution metadata to graph nodes.
+
+- Every level-two or level-three task heading in task-catalog.md is a canonical task ID/title. Its ID set must equal the graph ID set exactly, with no duplicates. For new schema 1.2 task records, task_definition.title must exactly match the catalog title.
+- The execution-breakdown manifest must list every Markdown file in Production/Development/execution-work-breakdown/ exactly once, with no missing or unlisted file.
+- The Parent-to-execution-child roll-up register must map every execution-level child to exactly one intermediate parent. The register and parent/child headings in the breakdown files must agree.
+- Each execution-level child's Parent work package must match its enclosing parent section and the roll-up register. Its Direct prerequisites must match dependency-graph.json depends_on exactly. Every execution-level child must retain WP-INIT-003 as a direct prerequisite and must not depend on its grouping parent.
+- Every roll-up parent must depend on every registered execution child. A parent cannot enter in_progress or done until all registered children are done. Parent membership is a roll-up relation, never a child-to-parent dependency.
+- Task workspace directories must map to graph nodes and contain canonical task-status.md files. Orphan workspaces or workspaces without status records are errors.
+- Any change to task IDs/titles, decomposition, parent mapping, direct prerequisites, breakdown files or graph edges must update all affected artifacts together. Preserve the exact three-key graph node schema. A green graph-only check is not proof of repository-wide consistency.
+
+Before accepting or committing a planning change, run:
+python Production/Development/tools/graph_guard.py Production/Development/dependency-graph.json --repo-root . --show-waves
+
+The repository-backed check validates catalog/graph parity, breakdown manifest and hierarchy, parent roll-ups, declared prerequisite parity, task workspaces, canonical task records, scheduling, edge reviews, parameter registry, evidence and completion gates. Any error blocks acceptance. CI runs this check for every pull request and every push to main.
+
 ## Final rule
 
 Inspect first; create only required missing paths. Preserve source wording and all existing user files. Do not create unrelated artifacts. The graph stays minimal; execution detail belongs in task-status.md and append-only work logs.

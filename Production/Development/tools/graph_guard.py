@@ -763,6 +763,178 @@ def validate_record(task,by_id,record,markdown,root,out,plan_by_id):
   validate_schema_12_record(task,by_id,record,markdown,root,out)
 
 
+
+TASK_ID_PATTERN=re.compile(r"WP-[A-Z0-9]+(?:-[A-Z0-9]+)*-\d{3}")
+TASK_ID_TOKEN_PATTERN=re.compile(r"\bWP-[A-Z0-9]+(?:-[A-Z0-9]+)*-\d{3}\b")
+TASK_HEADING_PATTERN=re.compile(r"^(#{2,3})\s+(WP-[A-Z0-9]+(?:-[A-Z0-9]+)*-\d{3})\s+—\s+(.+?)\s*$")
+TASK_CATALOG_PATH=Path("Production")/"Development"/"task-catalog.md"
+TASK_WORKSPACE_ROOT=Path("Production")/"Development"/"Tasks"
+BREAKDOWN_ROOT=Path("Production")/"Development"/"execution-work-breakdown"
+
+def markdown_h2_section(markdown:str,title:str):
+ match=re.search(rf"(?ms)^##[ \t]+{re.escape(title)}[ \t]*\n(.*?)(?=^##[ \t]+|\Z)",markdown)
+ return match.group(1) if match else None
+
+def validate_repository_planning_contract(root:Path,graph_by_id:dict[str,Any],out:list[Finding])->dict[str,str]:
+ """Validate cross-file identity, decomposition, roll-up and dependency contracts."""
+ catalog_path=root/TASK_CATALOG_PATH
+ catalog_titles={}
+ catalog_text=""
+ if not catalog_path.is_file():
+  out.append(Finding("ERROR","MISSING_TASK_CATALOG",f"Required task catalog is missing: {TASK_CATALOG_PATH.as_posix()}."))
+ else:
+  try: catalog_text=catalog_path.read_text(encoding="utf-8")
+  except (OSError,UnicodeError) as exc: out.append(Finding("ERROR","TASK_CATALOG_READ",f"Cannot read task catalog: {exc}."))
+  for number,line in enumerate(catalog_text.splitlines(),1):
+   stripped=line.strip()
+   if not re.match(r"^#{2,3}[ \t]+WP-",stripped): continue
+   match=TASK_HEADING_PATTERN.fullmatch(stripped)
+   if match is None:
+    out.append(Finding("ERROR","MALFORMED_CATALOG_TASK_HEADING",f"task-catalog.md:{number}: expected '##/### WP-ID — title'.")); continue
+   tid,title=match.group(2),match.group(3).strip()
+   if tid in catalog_titles: out.append(Finding("ERROR","DUPLICATE_CATALOG_TASK_ID",f"task-catalog.md:{number}: {tid} is defined more than once."))
+   else: catalog_titles[tid]=title
+   if not TASK_ID_PATTERN.fullmatch(tid): out.append(Finding("ERROR","INVALID_CATALOG_TASK_ID",f"task-catalog.md:{number}: invalid ID {tid!r}."))
+   if not title: out.append(Finding("ERROR","EMPTY_CATALOG_TASK_TITLE",f"task-catalog.md:{number}: {tid} has no title."))
+ for tid in sorted(set(graph_by_id)-set(catalog_titles)):
+  out.append(Finding("ERROR","GRAPH_TASK_MISSING_FROM_CATALOG",f"{tid} exists in the graph but has no catalog heading."))
+ for tid in sorted(set(catalog_titles)-set(graph_by_id)):
+  out.append(Finding("ERROR","CATALOG_TASK_MISSING_FROM_GRAPH",f"{tid} exists in the catalog but has no graph node."))
+
+ manifest=markdown_h2_section(catalog_text,"Execution-level work breakdown files") if catalog_text else None
+ declared=[]
+ if manifest is None: out.append(Finding("ERROR","MISSING_BREAKDOWN_MANIFEST","Catalog lacks the execution-breakdown manifest."))
+ else:
+  declared=re.findall(r"\]\(([^)]+\.md)\)",manifest)
+  if len(declared)!=len(set(declared)): out.append(Finding("ERROR","DUPLICATE_BREAKDOWN_MANIFEST_PATH","Manifest has duplicate paths."))
+  for rel in declared:
+   if not rel.startswith("execution-work-breakdown/"): out.append(Finding("ERROR","INVALID_BREAKDOWN_MANIFEST_PATH",f"Unexpected path {rel!r}."))
+   _,problem=safe_repo_file(root,(Path("Production")/"Development"/rel).as_posix())
+   if problem: out.append(Finding("ERROR","UNSAFE_BREAKDOWN_MANIFEST_PATH",f"{rel!r}: {problem}."))
+ breakdown_dir=root/BREAKDOWN_ROOT
+ if not breakdown_dir.is_dir():
+  out.append(Finding("ERROR","MISSING_BREAKDOWN_DIRECTORY",f"Missing {BREAKDOWN_ROOT.as_posix()}.")); actual=[]
+ else:
+  actual=sorted(p.relative_to(root/Path("Production")/"Development").as_posix() for p in breakdown_dir.glob("*.md") if p.is_file())
+ for rel in sorted(set(declared)-set(actual)): out.append(Finding("ERROR","MISSING_DECLARED_BREAKDOWN_FILE",f"Manifest file does not exist: {rel}."))
+ for rel in sorted(set(actual)-set(declared)): out.append(Finding("ERROR","UNDECLARED_BREAKDOWN_FILE",f"Breakdown file is not listed in the catalog manifest: {rel}."))
+
+ rollup_text=markdown_h2_section(catalog_text,"Parent-to-execution-child roll-up register") if catalog_text else None
+ if rollup_text is None: out.append(Finding("ERROR","MISSING_PARENT_ROLLUP_REGISTER","Catalog lacks the parent-to-child roll-up register."))
+ rollup={}
+ child_to_parent={}
+ if rollup_text is not None:
+  for row,line in enumerate(rollup_text.splitlines(),1):
+   if not line.strip().startswith("|"): continue
+   cells=[x.strip() for x in line.strip().strip("|").split("|")]
+   if not cells or not cells[0].startswith("WP-"): continue
+   parent=cells[0]
+   if len(cells)!=3 or not TASK_ID_PATTERN.fullmatch(parent):
+    out.append(Finding("ERROR","MALFORMED_PARENT_ROLLUP_ROW",f"Roll-up row {row} is malformed.")); continue
+   if parent in rollup: out.append(Finding("ERROR","DUPLICATE_PARENT_ROLLUP_ROW",f"{parent} appears more than once.")); continue
+   children=TASK_ID_TOKEN_PATTERN.findall(cells[1])
+   if not children: out.append(Finding("ERROR","EMPTY_PARENT_ROLLUP_CHILDREN",f"{parent} has no child IDs."))
+   if len(children)!=len(set(children)): out.append(Finding("ERROR","DUPLICATE_ROLLUP_CHILD_TASK",f"{parent} repeats a child ID."))
+   try:
+    if int(cells[2])!=len(children): out.append(Finding("ERROR","PARENT_ROLLUP_COUNT_MISMATCH",f"{parent} declared child count is incorrect."))
+   except ValueError: out.append(Finding("ERROR","INVALID_PARENT_ROLLUP_COUNT",f"{parent} has a non-numeric child count."))
+   rollup[parent]=children
+   if parent not in graph_by_id: out.append(Finding("ERROR","UNKNOWN_ROLLUP_PARENT",f"{parent} is absent from graph."))
+   if parent not in catalog_titles: out.append(Finding("ERROR","UNKNOWN_ROLLUP_PARENT_CATALOG",f"{parent} is absent from catalog."))
+   for child in children:
+    if child in child_to_parent: out.append(Finding("ERROR","DUPLICATE_ROLLUP_CHILD_TASK",f"{child} is assigned to multiple parents."))
+    else: child_to_parent[child]=parent
+    if child not in graph_by_id: out.append(Finding("ERROR","UNKNOWN_ROLLUP_CHILD",f"{child} is absent from graph."))
+    if child not in catalog_titles: out.append(Finding("ERROR","UNKNOWN_ROLLUP_CHILD_CATALOG",f"{child} is absent from catalog."))
+
+ parents={}
+ leaves=[]
+ for rel in actual:
+  path=root/Path("Production")/"Development"/rel
+  try: lines=path.read_text(encoding="utf-8").splitlines()
+  except (OSError,UnicodeError) as exc:
+   out.append(Finding("ERROR","BREAKDOWN_FILE_READ",f"{rel}: {exc}.")); continue
+  parent_context=None
+  leaf=None
+  for number,line in enumerate(lines,1):
+   stripped=line.strip()
+   if stripped.startswith("## WP-"):
+    if leaf is not None: leaves.append(leaf); leaf=None
+    parent_context=None
+    match=TASK_HEADING_PATTERN.fullmatch(stripped)
+    if match is None or len(match.group(1))!=2:
+     out.append(Finding("ERROR","MALFORMED_BREAKDOWN_PARENT_HEADING",f"{rel}:{number}: malformed parent heading."))
+    else:
+     tid,title=match.group(2),match.group(3).strip()
+     if tid in parents: out.append(Finding("ERROR","DUPLICATE_BREAKDOWN_PARENT",f"{tid} appears in multiple groups."))
+     else: parents[tid]={"title":title,"file":rel,"line":number}
+     parent_context=tid
+     if catalog_titles.get(tid)!=title: out.append(Finding("ERROR","BREAKDOWN_TITLE_CATALOG_MISMATCH",f"{rel}:{number}: {tid} title differs from catalog."))
+   elif stripped.startswith("### WP-"):
+    if leaf is not None: leaves.append(leaf)
+    leaf=None
+    match=TASK_HEADING_PATTERN.fullmatch(stripped)
+    if match is None or len(match.group(1))!=3:
+     out.append(Finding("ERROR","MALFORMED_BREAKDOWN_TASK_HEADING",f"{rel}:{number}: malformed execution-task heading."))
+    else:
+     tid,title=match.group(2),match.group(3).strip()
+     leaf={"id":tid,"title":title,"parent_group":parent_context,"file":rel,"line":number,"body":[]}
+     if parent_context is None: out.append(Finding("ERROR","EXECUTION_TASK_WITHOUT_PARENT_GROUP",f"{rel}:{number}: {tid} is not nested under a parent."))
+     if catalog_titles.get(tid)!=title: out.append(Finding("ERROR","BREAKDOWN_TITLE_CATALOG_MISMATCH",f"{rel}:{number}: {tid} title differs from catalog."))
+   elif stripped.startswith("## "):
+    if leaf is not None: leaves.append(leaf); leaf=None
+    parent_context=None
+   elif leaf is not None: leaf["body"].append(line)
+  if leaf is not None: leaves.append(leaf)
+
+ leaf_by_id={}
+ for task in leaves:
+  tid=task["id"]
+  if tid in leaf_by_id: out.append(Finding("ERROR","DUPLICATE_EXECUTION_TASK",f"{tid} is defined more than once.")); continue
+  leaf_by_id[tid]=task
+  body="\n".join(task["body"])
+  parents_found=re.findall(r"(?m)^\s*-\s+\*\*Parent work package:\*\*\s*(.*?)\s*$",body)
+  if len(parents_found)!=1 or not TASK_ID_PATTERN.fullmatch(parents_found[0].strip()):
+   out.append(Finding("ERROR","INVALID_EXECUTION_PARENT_FIELD",f"{task['file']}:{task['line']}: {tid} must have one valid parent field.")); parent=None
+  else: parent=parents_found[0].strip()
+  if parent!=task["parent_group"]: out.append(Finding("ERROR","BREAKDOWN_PARENT_GROUP_MISMATCH",f"{tid} declared parent differs from its enclosing section."))
+  if parent is not None and child_to_parent.get(tid)!=parent: out.append(Finding("ERROR","ROLLUP_PARENT_MISMATCH",f"{tid} parent differs from catalog roll-up register."))
+  if tid not in child_to_parent: out.append(Finding("ERROR","EXECUTION_TASK_MISSING_FROM_ROLLUP",f"{tid} is absent from roll-up register."))
+  deps_found=re.findall(r"(?m)^\s*-\s+\*\*Direct prerequisites:\*\*\s*(.*?)\s*$",body)
+  if len(deps_found)!=1:
+   out.append(Finding("ERROR","INVALID_BREAKDOWN_DIRECT_PREREQUISITES",f"{task['file']}:{task['line']}: {tid} must have one Direct prerequisites field.")); deps=[]
+  else:
+   deps=TASK_ID_TOKEN_PATTERN.findall(deps_found[0].split(".",1)[0])
+   if len(deps)!=len(set(deps)): out.append(Finding("ERROR","DUPLICATE_BREAKDOWN_PREREQUISITE",f"{tid} repeats a direct prerequisite."))
+  node=graph_by_id.get(tid)
+  if node is None: out.append(Finding("ERROR","BREAKDOWN_TASK_MISSING_FROM_GRAPH",f"{tid} is absent from graph."))
+  elif set(deps)!=set(node.get("depends_on",[])): out.append(Finding("ERROR","BREAKDOWN_DEPENDENCY_MISMATCH",f"{tid}: declared prerequisites differ from graph edges."))
+  if "WP-INIT-003" not in deps: out.append(Finding("ERROR","MISSING_DECOMPOSITION_BASELINE_PREREQUISITE",f"{tid} must directly depend on WP-INIT-003."))
+  if parent and parent in deps: out.append(Finding("ERROR","CHILD_DEPENDS_ON_GROUP_PARENT",f"{tid} must not depend on grouping parent {parent}."))
+
+ if set(parents)!=set(rollup): out.append(Finding("ERROR","PARENT_GROUP_ROLLUP_SET_MISMATCH","Parent groups and roll-up register differ."))
+ if set(leaf_by_id)!=set(child_to_parent): out.append(Finding("ERROR","EXECUTION_TASK_ROLLUP_SET_MISMATCH","Execution tasks and roll-up child IDs differ."))
+ for parent,children in rollup.items():
+  node=graph_by_id.get(parent)
+  if node is None: continue
+  missing=set(children)-set(node.get("depends_on",[]))
+  if missing: out.append(Finding("ERROR","PARENT_ROLLUP_DEPENDENCY_MISSING",f"{parent} lacks child dependencies: {sorted(missing)}."))
+  unfinished=[child for child in children if child in graph_by_id and graph_by_id[child].get("status")!="done"]
+  if node.get("status") in {"in_progress","done"} and unfinished:
+   out.append(Finding("ERROR","PARENT_ROLLUP_BEFORE_CHILDREN_DONE",f"{parent} is {node.get('status')} while children remain unfinished: {sorted(unfinished)}."))
+  for child in children:
+   child_node=graph_by_id.get(child)
+   if child_node is not None and parent in child_node.get("depends_on",[]): out.append(Finding("ERROR","CHILD_DEPENDS_ON_GROUP_PARENT",f"{child} depends on roll-up parent {parent}."))
+
+ tasks_root=root/TASK_WORKSPACE_ROOT
+ if not tasks_root.is_dir(): out.append(Finding("ERROR","MISSING_TASK_WORKSPACE_ROOT",f"Missing {TASK_WORKSPACE_ROOT.as_posix()}."))
+ else:
+  for workspace in sorted((p for p in tasks_root.iterdir() if p.is_dir()),key=lambda p:p.name):
+   if workspace.name not in graph_by_id: out.append(Finding("ERROR","ORPHAN_TASK_WORKSPACE",f"Workspace {workspace.name!r} has no graph node."))
+   elif not (workspace/"task-status.md").is_file(): out.append(Finding("ERROR","TASK_WORKSPACE_WITHOUT_STATUS_RECORD",f"{workspace.name} has no canonical task-status.md."))
+ return catalog_titles
+
+
 def validate_graph(graph:Any,repo_root:Path|None=None)->list[Finding]:
  out=[]
  if not isinstance(graph,dict) or set(graph)!={"tasks"} or not isinstance(graph.get("tasks"),list):
@@ -796,14 +968,22 @@ def validate_graph(graph:Any,repo_root:Path|None=None)->list[Finding]:
  try: plan_by_id,waves=derive_execution_waves(graph)
  except ValueError: plan_by_id,waves={},[]
  if repo_root is not None:
-  out.extend(validate_parameter_registry(repo_root.resolve()))
+  resolved_root=repo_root.resolve()
+  catalog_titles=validate_repository_planning_contract(resolved_root,by_id,out)
+  out.extend(validate_parameter_registry(resolved_root))
   for tid,node in by_id.items():
-   status_path=repo_root/"Production"/"Development"/"Tasks"/tid/"task-status.md"
+   status_path=resolved_root/"Production"/"Development"/"Tasks"/tid/"task-status.md"
    if node.get("status") in {"in_progress","done","blocked","deferred_final"} or status_path.is_file():
     if not status_path.is_file(): out.append(Finding("ERROR","MISSING_TASK_STATUS",f"{tid}: task-status.md is required.")); continue
     try: markdown=status_path.read_text(encoding="utf-8"); record=extract_status_record(markdown)
     except (OSError,UnicodeError,ValueError,json.JSONDecodeError) as exc: out.append(Finding("ERROR","TASK_STATUS_READ",f"{tid}: {exc}.")); continue
-    validate_record(node,by_id,record,markdown,repo_root.resolve(),out,plan_by_id)
+    if record.get("schema_version")=="1.2":
+     definition=record.get("task_definition")
+     actual_title=definition.get("title") if isinstance(definition,dict) else None
+     expected_title=catalog_titles.get(tid)
+     if expected_title is not None and actual_title!=expected_title:
+      out.append(Finding("ERROR","TASK_TITLE_CATALOG_MISMATCH",f"{tid}: schema 1.2 task_definition.title differs from catalog title."))
+    validate_record(node,by_id,record,markdown,resolved_root,out,plan_by_id)
  return out
 
 def main(argv=None):

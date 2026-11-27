@@ -2,7 +2,7 @@ import json,sys,tempfile,unittest
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
-from tools.graph_guard import FIXED_PARAMETER_IDS,ROLE_IDS,STATUS_END,STATUS_START,derive_execution_waves,extract_status_record,fixed_ids_from_prompt,fixed_parameter_definitions_from_prompt,valid_task_parameter_id,validate_graph,validate_parameter_registry
+from tools.graph_guard import FIXED_PARAMETER_IDS,ROLE_IDS,STATUS_END,STATUS_START,derive_execution_waves,extract_status_record,fixed_ids_from_prompt,fixed_parameter_definitions_from_prompt,valid_task_parameter_id,validate_graph,validate_parameter_registry,validate_repository_planning_contract
 
 def node(tid,deps=None,status="not_started"): return {"id":tid,"depends_on":deps or [],"status":status}
 def graph_fixture(): return {"tasks":[node("WP-INIT-001"),node("WP-INIT-002",["WP-INIT-001"])]}
@@ -99,7 +99,7 @@ class TaskStatusTests(unittest.TestCase):
   with self.assertRaises(ValueError): extract_status_record("# status only")
  def test_done_requires_status_file(self):
   with tempfile.TemporaryDirectory() as td:
-   errors={x.code for x in validate_graph({"tasks":[node("WP-INIT-001",status="done")]},Path(td))}
+   errors={x.code for x in validate_with_repository_fixture({"tasks":[node("WP-INIT-001",status="done")]},Path(td))}
   self.assertIn("MISSING_TASK_STATUS",errors)
  def test_done_requires_actual_output_and_passing_check(self):
   graph={"tasks":[node("WP-INIT-001",status="done")]}; record=done_record()
@@ -108,7 +108,7 @@ class TaskStatusTests(unittest.TestCase):
   record["execution_summary"]["tests_passed"]=[]
   with tempfile.TemporaryDirectory() as td:
    root=Path(td); (root/"output.md").write_text("output",encoding="utf-8"); write_status(root,record)
-   errors={x.code for x in validate_graph(graph,root)}
+   errors={x.code for x in validate_with_repository_fixture(graph,root)}
   self.assertIn("DONE_WITHOUT_OUTPUT",errors); self.assertIn("DONE_WITHOUT_PASSED_TESTS",errors)
  def test_validated_edge_needs_reason_and_evidence(self):
   graph={"tasks":[node("WP-INIT-001"),node("WP-INIT-002",["WP-INIT-001"],status="done")]}
@@ -116,7 +116,7 @@ class TaskStatusTests(unittest.TestCase):
   record["prerequisite_reviews"]=[{"task_id":"WP-INIT-001","classification":"hard_dependency","validation_status":"validated","rationale":"","evidence":[]}]
   with tempfile.TemporaryDirectory() as td:
    root=Path(td); (root/"output.md").write_text("output",encoding="utf-8"); write_status(root,record)
-   errors={x.code for x in validate_graph(graph,root)}
+   errors={x.code for x in validate_with_repository_fixture(graph,root)}
   self.assertIn("VALIDATED_EDGE_WITHOUT_EVIDENCE",errors)
  def test_validated_sequencing_only_can_be_bypassed(self):
   graph={"tasks":[node("WP-INIT-001",status="not_started"),node("WP-INIT-002",["WP-INIT-001"],status="in_progress")]}
@@ -124,28 +124,28 @@ class TaskStatusTests(unittest.TestCase):
   record.update({"graph_status":"in_progress","prerequisite_reviews":[{"task_id":"WP-INIT-001","classification":"sequencing_only","validation_status":"validated","rationale":"No output is consumed.","evidence":["prereq.md"]}],"acceptance_criteria":[],"actual_output_paths":[],"execution_history":[],"execution_summary":{"attempt_count":0,"failed_attempt_count":0,"tests_passed":[],"tests_failed":[]},"agent_reviews":[]})
   with tempfile.TemporaryDirectory() as td:
    root=Path(td); (root/"prereq.md").write_text("review",encoding="utf-8"); write_status(root,record)
-   errors={x.code for x in validate_graph(graph,root)}
+   errors={x.code for x in validate_with_repository_fixture(graph,root)}
   self.assertNotIn("PREREQUISITE_NOT_DONE",errors)
  def test_unreviewed_edge_cannot_be_bypassed(self):
   graph={"tasks":[node("WP-INIT-001",status="not_started"),node("WP-INIT-002",["WP-INIT-001"],status="in_progress")]}
   record=done_record("WP-INIT-002")
   record.update({"graph_status":"in_progress","prerequisite_reviews":[{"task_id":"WP-INIT-001","classification":"unreviewed","validation_status":"unreviewed","rationale":"","evidence":[]}],"acceptance_criteria":[],"actual_output_paths":[],"execution_history":[],"execution_summary":{"attempt_count":0,"failed_attempt_count":0,"tests_passed":[],"tests_failed":[]},"agent_reviews":[]})
   with tempfile.TemporaryDirectory() as td:
-   root=Path(td); write_status(root,record); errors={x.code for x in validate_graph(graph,root)}
+   root=Path(td); write_status(root,record); errors={x.code for x in validate_with_repository_fixture(graph,root)}
   self.assertIn("PREREQUISITE_NOT_DONE",errors)
  def test_deferred_final_needs_full_metadata(self):
   graph={"tasks":[node("WP-INIT-001",status="deferred_final")]}; record=done_record()
   record.update({"graph_status":"deferred_final","deferral":{"reason":"No endpoint yet"}})
   with tempfile.TemporaryDirectory() as td:
    root=Path(td); (root/"output.md").write_text("output",encoding="utf-8"); write_status(root,record)
-   errors={x.code for x in validate_graph(graph,root)}
+   errors={x.code for x in validate_with_repository_fixture(graph,root)}
   self.assertIn("DEFERRED_FINAL_WITHOUT_METADATA",errors)
  def test_parent_path_is_rejected(self):
   graph={"tasks":[node("WP-INIT-001",status="done")]}; record=done_record()
   record["actual_output_paths"]=["../outside.md"]
   with tempfile.TemporaryDirectory() as td:
    root=Path(td); (root/"output.md").write_text("output",encoding="utf-8"); write_status(root,record)
-   errors={x.code for x in validate_graph(graph,root)}
+   errors={x.code for x in validate_with_repository_fixture(graph,root)}
   self.assertIn("UNSAFE_OUTPUT_PATH",errors)
 
 
@@ -183,14 +183,14 @@ class Schema11TaskStatusTests(unittest.TestCase):
   record=self.make_record(); record.pop("source_baseline"); record.pop("execution_plan")
   with tempfile.TemporaryDirectory() as td:
    root=Path(td); (root/"output.md").write_text("output",encoding="utf-8"); write_status(root,record)
-   errors={x.code for x in validate_graph(graph,root)}
+   errors={x.code for x in validate_with_repository_fixture(graph,root)}
   self.assertIn("MISSING_SOURCE_BASELINE",errors); self.assertIn("MISSING_EXECUTION_PLAN",errors)
  def test_schema11_rejects_incorrect_wave(self):
   graph={"tasks":[node("WP-INIT-001",status="done")]}
   record=self.make_record(); record["execution_plan"]["wave_id"]="WAVE-009"
   with tempfile.TemporaryDirectory() as td:
    root=Path(td); (root/"output.md").write_text("output",encoding="utf-8"); write_status(root,record)
-   errors={x.code for x in validate_graph(graph,root)}
+   errors={x.code for x in validate_with_repository_fixture(graph,root)}
   self.assertIn("EXECUTION_WAVE_MISMATCH",errors)
  def test_impact_mapping_requires_complete_task_reconciliation(self):
   graph={"tasks":[node("WP-INIT-001",status="done"),node("WP-INIT-002",["WP-INIT-001"],status="done")]}
@@ -209,7 +209,7 @@ class Schema11TaskStatusTests(unittest.TestCase):
    "reviewed_by":"senior-engineer","reviewed_at":"2026-11-27T00:00:00Z"}]
   with tempfile.TemporaryDirectory() as td:
    root=Path(td); (root/"output.md").write_text("output",encoding="utf-8"); (root/"change.md").write_text("change",encoding="utf-8"); write_status(root,record)
-   errors={x.code for x in validate_graph(graph,root)}
+   errors={x.code for x in validate_with_repository_fixture(graph,root)}
   self.assertNotIn("RECONCILIATION_SET_MISMATCH",errors)
   self.assertNotIn("REVIEWED_RECONCILIATION_WITHOUT_EVIDENCE",errors)
  def test_changed_status_requires_explicit_evidence(self):
@@ -229,7 +229,7 @@ class Schema11TaskStatusTests(unittest.TestCase):
    "reviewed_by":"senior-engineer","reviewed_at":"2026-11-27T00:00:00Z"}]
   with tempfile.TemporaryDirectory() as td:
    root=Path(td); (root/"output.md").write_text("output",encoding="utf-8"); (root/"change.md").write_text("change",encoding="utf-8"); write_status(root,record)
-   errors={x.code for x in validate_graph(graph,root)}
+   errors={x.code for x in validate_with_repository_fixture(graph,root)}
   self.assertIn("INCOMPLETE_RECONCILIATION_TRANSITION",errors)
 
 class Schema12ProjectParityTests(unittest.TestCase):
@@ -342,14 +342,14 @@ class Schema12ProjectParityTests(unittest.TestCase):
  def test_schema12_complete_project_contract_passes(self):
   with tempfile.TemporaryDirectory() as td:
    root=Path(td); graph,record,status_path,_=self.make_fixture(root)
-   self.assertEqual(validate_graph(graph,root),[])
+   self.assertEqual(validate_with_repository_fixture(graph,root),[])
 
  def test_schema12_requires_complete_task_inputs_and_outputs(self):
   with tempfile.TemporaryDirectory() as td:
    root=Path(td); graph,record,status_path,definitions=self.make_fixture(root)
    record["task_definition"]["inputs"]=[]
    self.save_fixture_status(root,record,definitions)
-   errors={x.code for x in validate_graph(graph,root)}
+   errors={x.code for x in validate_with_repository_fixture(graph,root)}
    self.assertIn("MISSING_TASK_INPUTS",errors)
 
  def test_schema12_requires_all_81_exact_parameter_checks(self):
@@ -357,7 +357,7 @@ class Schema12ProjectParityTests(unittest.TestCase):
    root=Path(td); graph,record,status_path,definitions=self.make_fixture(root)
    record["parameter_reviews"].pop()
    self.save_fixture_status(root,record,definitions)
-   errors={x.code for x in validate_graph(graph,root)}
+   errors={x.code for x in validate_with_repository_fixture(graph,root)}
    self.assertIn("FIXED_PARAMETER_SET_MISMATCH",errors)
 
  def test_schema12_requires_attempt_summary_to_be_derived(self):
@@ -384,10 +384,10 @@ class Schema12ProjectParityTests(unittest.TestCase):
     "last_attempt_result":"partial","changed_files":["output.md"]
    })
    self.save_fixture_status(root,record,definitions)
-   self.assertEqual(validate_graph(graph,root),[])
+   self.assertEqual(validate_with_repository_fixture(graph,root),[])
    record["execution_summary"]["changed_files"]=[]
    self.save_fixture_status(root,record,definitions)
-   errors={x.code for x in validate_graph(graph,root)}
+   errors={x.code for x in validate_with_repository_fixture(graph,root)}
    self.assertIn("EXECUTION_SUMMARY_DERIVATION_MISMATCH",errors)
 
  def test_schema12_requires_validated_edges_before_in_progress(self):
@@ -404,7 +404,7 @@ class Schema12ProjectParityTests(unittest.TestCase):
     "reviewed_by":"senior-engineer","reviewed_at":"2026-11-27T10:00:00Z"
    }]
    self.save_fixture_status(root,record,definitions)
-   errors={x.code for x in validate_graph(graph,root)}
+   errors={x.code for x in validate_with_repository_fixture(graph,root)}
    self.assertIn("UNVALIDATED_PREREQUISITE_BEFORE_START",errors)
 
  def test_schema12_done_requires_latest_success_and_verified_outputs(self):
@@ -445,7 +445,135 @@ class Schema12ProjectParityTests(unittest.TestCase):
     "related_commits":[commit],"tests_passed":["python -m unittest tests.test_acceptance -v"]
    })
    self.save_fixture_status(root,record,definitions)
-   errors={x.code for x in validate_graph(graph,root)}
+   errors={x.code for x in validate_with_repository_fixture(graph,root)}
    self.assertEqual(errors,set())
+
+
+  def test_schema12_task_title_must_match_catalog(self):
+   with tempfile.TemporaryDirectory() as td:
+    root=Path(td); graph,record,status_path,definitions=self.make_fixture(root)
+    write_minimal_repository_contract(root,graph)
+    record["task_definition"]["title"]="A drifted task title."
+    self.save_fixture_status(root,record,definitions)
+    errors={x.code for x in validate_graph(graph,root)}
+   self.assertIn("TASK_TITLE_CATALOG_MISMATCH",errors)
+
+class PlanningArtifactContractTests(unittest.TestCase):
+ def make_fixture(self,root):
+  dev=root/"Production"/"Development"; breakdown=dev/"execution-work-breakdown"
+  breakdown.mkdir(parents=True,exist_ok=True); (dev/"Tasks").mkdir(parents=True,exist_ok=True)
+  graph={"tasks":[node("WP-INIT-003"),node("WP-ARCH-001"),
+   node("WP-ARCH-007",["WP-ARCH-001","WP-INIT-003"]),node("WP-ARCH-002",["WP-ARCH-007"])]}
+  catalog=["# Fixture catalog","## WP-INIT-003 — Execution decomposition baseline",
+   "## WP-ARCH-001 — Architecture baseline","### WP-ARCH-002 — Intermediate parent package",
+   "### WP-ARCH-007 — Execution child task","","## Execution-level work breakdown files",
+   "| File | Scope | Parent packages | New tasks |","|---|---|---:|---:|",
+   "| [part-one.md](execution-work-breakdown/part-one.md) | Fixture | 1 | 1 |","",
+   "## Parent-to-execution-child roll-up register","| Parent | Children | Count |","|---|---|---:|",
+   "| WP-ARCH-002 | WP-ARCH-007 | 1 |",""]
+  (dev/"task-catalog.md").write_text("\n".join(catalog),encoding="utf-8")
+  doc="""# Fixture
+
+## WP-ARCH-002 — Intermediate parent package
+
+### WP-ARCH-007 — Execution child task
+
+- **Type:** architecture.
+- **Parent work package:** WP-ARCH-002
+- **Direct prerequisites:** WP-ARCH-001, WP-INIT-003. Parent membership is a roll-up relation, not a child prerequisite.
+- **Required output:** A verifiable child deliverable.
+"""
+  (breakdown/"part-one.md").write_text(doc,encoding="utf-8")
+  return graph,dev/"task-catalog.md",breakdown/"part-one.md"
+
+ def codes(self,root,graph):
+  found=[]
+  validate_repository_planning_contract(root,{x["id"]:x for x in graph["tasks"]},found)
+  return {x.code for x in found}
+
+ def test_complete_contract_passes(self):
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td); graph,_,_=self.make_fixture(root)
+   self.assertEqual(self.codes(root,graph),set())
+
+ def test_graph_task_must_exist_in_catalog(self):
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td); graph,catalog,_=self.make_fixture(root)
+   catalog.write_text(catalog.read_text(encoding="utf-8").replace("### WP-ARCH-007 — Execution child task\n",""),encoding="utf-8")
+   self.assertIn("GRAPH_TASK_MISSING_FROM_CATALOG",self.codes(root,graph))
+
+ def test_child_prerequisites_must_equal_graph(self):
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td); graph,_,_=self.make_fixture(root); graph["tasks"][2]["depends_on"]=["WP-INIT-003"]
+   self.assertIn("BREAKDOWN_DEPENDENCY_MISMATCH",self.codes(root,graph))
+
+ def test_parent_must_depend_on_every_child(self):
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td); graph,_,_=self.make_fixture(root); graph["tasks"][3]["depends_on"]=[]
+   self.assertIn("PARENT_ROLLUP_DEPENDENCY_MISSING",self.codes(root,graph))
+
+ def test_parent_cannot_start_before_children_done(self):
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td); graph,_,_=self.make_fixture(root); graph["tasks"][3]["status"]="in_progress"
+   self.assertIn("PARENT_ROLLUP_BEFORE_CHILDREN_DONE",self.codes(root,graph))
+
+ def test_child_title_must_match_catalog(self):
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td); graph,_,doc=self.make_fixture(root)
+   doc.write_text(doc.read_text(encoding="utf-8").replace("### WP-ARCH-007 — Execution child task","### WP-ARCH-007 — Renamed"),encoding="utf-8")
+   self.assertIn("BREAKDOWN_TITLE_CATALOG_MISMATCH",self.codes(root,graph))
+
+ def test_breakdown_manifest_must_list_every_file(self):
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td); graph,_,doc=self.make_fixture(root)
+   (doc.parent/"unlisted.md").write_text("# Extra",encoding="utf-8")
+   self.assertIn("UNDECLARED_BREAKDOWN_FILE",self.codes(root,graph))
+
+ def test_child_must_not_depend_on_group_parent(self):
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td); graph,_,doc=self.make_fixture(root)
+   graph["tasks"][2]["depends_on"].append("WP-ARCH-002")
+   doc.write_text(doc.read_text(encoding="utf-8").replace("WP-ARCH-001, WP-INIT-003.","WP-ARCH-001, WP-INIT-003, WP-ARCH-002."),encoding="utf-8")
+   self.assertIn("CHILD_DEPENDS_ON_GROUP_PARENT",self.codes(root,graph))
+
+ def test_child_must_keep_decomposition_prerequisite(self):
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td); graph,_,doc=self.make_fixture(root); graph["tasks"][2]["depends_on"]=["WP-ARCH-001"]
+   doc.write_text(doc.read_text(encoding="utf-8").replace("WP-ARCH-001, WP-INIT-003.","WP-ARCH-001."),encoding="utf-8")
+   self.assertIn("MISSING_DECOMPOSITION_BASELINE_PREREQUISITE",self.codes(root,graph))
+
+ def test_rollup_register_rejects_duplicate_child_mapping(self):
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td); graph,catalog,_=self.make_fixture(root)
+   catalog.write_text(catalog.read_text(encoding="utf-8").replace("| WP-ARCH-002 | WP-ARCH-007 | 1 |","| WP-ARCH-002 | WP-ARCH-007, WP-ARCH-007 | 2 |"),encoding="utf-8")
+   self.assertIn("DUPLICATE_ROLLUP_CHILD_TASK",self.codes(root,graph))
+
+
+
+def write_minimal_repository_contract(root,graph):
+ dev=root/"Production"/"Development"
+ (dev/"execution-work-breakdown").mkdir(parents=True,exist_ok=True)
+ (dev/"Tasks").mkdir(parents=True,exist_ok=True)
+ headings=[]
+ for task in graph.get("tasks",[]):
+  tid=task.get("id")
+  if not isinstance(tid,str): continue
+  title=f"Test task {tid}"
+  status=dev/"Tasks"/tid/"task-status.md"
+  if status.is_file():
+   try:
+    record=extract_status_record(status.read_text(encoding="utf-8"))
+    definition=record.get("task_definition")
+    if record.get("schema_version")=="1.2" and isinstance(definition,dict) and isinstance(definition.get("title"),str): title=definition["title"]
+   except (OSError,UnicodeError,ValueError,json.JSONDecodeError): pass
+  headings.append(f"## {tid} — {title}")
+ catalog=["# Fixture catalog",*headings,"","## Execution-level work breakdown files",
+          "","## Parent-to-execution-child roll-up register",""]
+ (dev/"task-catalog.md").write_text("\n".join(catalog),encoding="utf-8")
+
+def validate_with_repository_fixture(graph,root):
+ path=root/"Production"/"Development"/"task-catalog.md"
+ if not path.is_file(): write_minimal_repository_contract(root,graph)
+ return validate_graph(graph,root)
 
 if __name__=="__main__": unittest.main(verbosity=2)
