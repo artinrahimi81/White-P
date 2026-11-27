@@ -286,7 +286,7 @@ def validate_schema_12_record(task,by_id,record,markdown,root,out):
  definition=record.get("task_definition")
  if not isinstance(definition,dict):
   out.append(Finding("ERROR","MISSING_TASK_DEFINITION",f"{ctx}: task_definition is required.")); definition={}
- for field in ("section","description","implementation_focus","start_condition","acceptance_summary","status_label_fa"):
+ for field in ("title","section","description","implementation_focus","start_condition","acceptance_summary","status_label_fa"):
   if not isinstance(definition.get(field),str) or not definition[field].strip():
    out.append(Finding("ERROR","INCOMPLETE_TASK_DEFINITION",f"{ctx}: task_definition.{field} is required."))
  if definition.get("source_task_id") is not None and not isinstance(definition.get("source_task_id"),str):
