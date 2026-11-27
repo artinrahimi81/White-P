@@ -277,7 +277,7 @@ class Schema12ProjectParityTests(unittest.TestCase):
     "parallelism_evidence":[]
    },
    "task_definition":{
-    "section":"Test workstream","source_task_id":None,"source_change_operation":None,
+    "title":"Schema 1.2 fixture task","section":"Test workstream","source_task_id":None,"source_change_operation":None,
     "affected_task_ids":[],"description":"A complete fixture task definition.",
     "implementation_focus":"Validate schema 1.2 execution records.",
     "inputs":[{
