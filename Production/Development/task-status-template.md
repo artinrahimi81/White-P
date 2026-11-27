@@ -356,9 +356,9 @@ Preserve earlier records. Correct a previous statement by appending a dated clar
 
 Every direct incoming dependency must have exactly one review in the canonical record below. Use the target task's status document as the review owner.
 
-| Prerequisite task ID | Classification | Validation status | Concrete reason | Evidence | Scheduling effect |
-|---|---|---|---|---|---|
-| <TASK_ID> | <hard_dependency / contract_or_interface_dependency / sequencing_only / unreviewed> | <unreviewed / validated / disputed> | <WHY THIS RELATION EXISTS> | <PATHS_OR_HTTPS_URLS> | <must be done / validated sequencing-only bypass / blocked pending review> |
+| Prerequisite task ID | Edge type | Classification | Validation status | Observed status | Required/consumed artifact | Consumer reason and impact | Evidence | Reviewer / timestamp | Scheduling effect |
+|---|---|---|---|---|---|---|---|---|---|
+| <TASK_ID> | blocks | <hard_dependency / contract_or_interface_dependency / sequencing_only / unreviewed> | <unreviewed / validated / disputed> | <OBSERVED_GRAPH_STATUS> | <EXACT_ARTIFACT_OR_NO_ARTIFACT_CONSUMED> | <WHY_THIS_CONSUMER_NEEDS_OR_DOES_NOT_NEED_IT> | <PATHS_OR_HTTPS_URLS> | <ROLE / ISO-8601> | <must be done / validated sequencing-only bypass / blocked pending review> |
 
 A validated edge requires a rationale and evidence. A sequencing-only edge can be bypassed only after validation. Record every added, removed or reclassified edge in the append-only edge-change log in the canonical record.
 
@@ -567,6 +567,7 @@ The ten role entries below are mandatory. Update each entry's state, activation 
   "blocked_reason": null,
   "deferral": null,
   "task_definition": {
+    "title": "<TASK_TITLE>",
     "section": "<SOURCE_SECTION_OR_WORKSTREAM>",
     "source_task_id": null,
     "source_change_operation": null,
@@ -1554,7 +1555,7 @@ Every newly selected task must have a complete `task_definition` in the canonica
 
 | Project task-node field | White-P task-status location |
 |---|---|
-| `id` / `title` / `section` | `task_id`, Task identity and `task_definition.section` |
+| `id` / `title` / `section` | `task_id`, `task_definition.title` and `task_definition.section` |
 | `source_task_id` / `source_change_operation` / `affected_task_ids` | Matching fields in `task_definition` |
 | `description` / `implementation_focus` / `start_condition` | Matching fields in `task_definition` |
 | `inputs` / `outputs` | Structured `task_definition.inputs[]` and `task_definition.outputs[]` |
